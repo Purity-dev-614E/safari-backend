@@ -133,6 +133,6 @@ module.exports = {
       console.error('Error assigning admin to group:', error);
       res.status(500).json({ error: 'Failed to assign admin to group' });
     }
-  }
+  },
 
 };

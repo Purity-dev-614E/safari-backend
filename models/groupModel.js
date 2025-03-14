@@ -27,7 +27,7 @@ module.exports = {
     return db('users_groups').insert({
       user_id: userId,
       group_id: groupId,
-      role: 'admin' // Assuming you have a role column in the users_groups table
+      role: 'admin' // Now we have a role column in the users_groups table
     }).returning('*');
   },
   
@@ -35,13 +35,14 @@ module.exports = {
     return db('users_groups')
       .where({ group_id: groupId })
       .join('users', 'users.id', 'users_groups.user_id')
-      .select('users.*');
+      .select('users.*', 'users_groups.role'); // Include the role field
   },
   
-  async addMember(groupId, userId) {
+  async addMember(groupId, userId, role = 'user') {
     return db('users_groups').insert({
       user_id: userId,
-      group_id: groupId
+      group_id: groupId,
+      role: role // Default role is 'member'
     }).returning('*');
   },
   
