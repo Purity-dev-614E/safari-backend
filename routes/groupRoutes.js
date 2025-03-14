@@ -4,7 +4,7 @@ const groupController = require('../controllers/groupController');
 const { authenticate } = require('../auth');
 
 // All group routes are protected
-// router.use(authenticate);
+router.use(authenticate);
 
 router.post('/', groupController.createGroup);
 router.get('/', groupController.getAllGroups);
