@@ -17,6 +17,17 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 
+  // Insert user data into the users table
+  const { user } = data;
+  const { error: insertError } = await supabase
+    .from('users')
+    .insert([{ email: user.email, auth_id: user.id }]);
+
+  if (insertError) {
+    console.error('Insert User Error:', insertError);
+    return res.status(400).json({ error: insertError.message });
+  }
+
   res.status(201).json({ user: data.user });
 });
 
