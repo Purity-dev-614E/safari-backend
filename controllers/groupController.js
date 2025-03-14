@@ -1,4 +1,6 @@
 const groupService = require('../services/groupService');
+const userService =  require('../services/userService')
+
 
 module.exports = {
   async createGroup(req, res) {
