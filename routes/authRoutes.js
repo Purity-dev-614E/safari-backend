@@ -17,8 +17,24 @@ router.post('/signup', async (req, res) => {
     return res.status(400).json({ error: error.message });
   }
 
+  console.log('Supabase data:', data);
+
+  // Insert email and auth_id into the users table
+  try {
+    await knex('users').insert({
+      auth_id: data.user.id, // Supabase user ID
+      email: data.user.email,
+    });
+    res.status(201).json({ user: data.user });
+  } catch (dbError) {
+    console.error('Database error:', dbError);
+
+    return res.status(500).json({ error: 'Failed to insert user information into the database' });
+
+  }
   res.status(201).json({ user: data.user });
 });
+
 
 // Log In
 router.post('/login', async (req, res) => {
