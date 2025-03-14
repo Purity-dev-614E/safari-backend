@@ -22,6 +22,14 @@ module.exports = {
   async getAll() {
     return db(table).select('*');
   },
+
+  async assignAdmin(groupId, userId) {
+    return db('users_groups').insert({
+      user_id: userId,
+      group_id: groupId,
+      role: 'admin' // Assuming you have a role column in the users_groups table
+    }).returning('*');
+  },
   
   async getMembers(groupId) {
     return db('users_groups')

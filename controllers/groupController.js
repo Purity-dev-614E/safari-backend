@@ -108,5 +108,31 @@ module.exports = {
       console.error('Error removing group member:', error);
       res.status(500).json({ error: 'Failed to remove group member' });
     }
+  },
+
+  async assignAdminToGroup(req, res) {
+    try {
+      const { groupId, userId } = req.body;
+      const superAdminId = req.user.id; // Assuming req.user is set by the authenticate middleware
+
+      // Check if the user is a super admin
+      const superAdmin = await userService.getUserById(superAdminId);
+      if (superAdmin.role !== 'super_admin') {
+        return res.status(403).json({ error: 'Only super admins can assign admins to groups' });
+      }
+
+      // Check if the user to be assigned is an admin
+      const user = await userService.getUserById(userId);
+      if (user.role !== 'admin') {
+        return res.status(400).json({ error: 'User must be an admin to be assigned to a group' });
+      }
+
+      const result = await groupService.assignAdminToGroup(groupId, userId);
+      res.status(200).json(result[0]);
+    } catch (error) {
+      console.error('Error assigning admin to group:', error);
+      res.status(500).json({ error: 'Failed to assign admin to group' });
+    }
   }
+
 };

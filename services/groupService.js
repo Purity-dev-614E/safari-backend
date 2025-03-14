@@ -16,6 +16,10 @@ module.exports = {
   async deleteGroup(id) {
     return groupModel.delete(id);
   },
+
+  async assignAdminToGroup(groupId, userId) {
+    return groupModel.assignAdmin(groupId, userId);
+  },
   
   async getAllGroups() {
     return groupModel.getAll();

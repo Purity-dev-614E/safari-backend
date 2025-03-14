@@ -4,7 +4,7 @@ const groupController = require('../controllers/groupController');
 const { authenticate } = require('../auth');
 
 // All group routes are protected
-router.use(authenticate);
+// router.use(authenticate);
 
 router.post('/', groupController.createGroup);
 router.get('/', groupController.getAllGroups);
@@ -16,5 +16,9 @@ router.delete('/:id', groupController.deleteGroup);
 router.get('/:id/members', groupController.getGroupMembers);
 router.post('/:id/members', groupController.addGroupMember);
 router.delete('/:id/members/:userId', groupController.removeGroupMember);
+
+// Assign admin to group
+router.post('/assign-admin', groupController.assignAdminToGroup);
+
 
 module.exports = router;

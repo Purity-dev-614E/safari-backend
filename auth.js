@@ -13,10 +13,9 @@ const authenticate = async (req, res, next) => {
   }
 
   try {
-    const { data, error } = await supabase.auth.api.getUser(token);
+    const { data, error } = await supabase.auth.getUser(token);
 
-    
-    if (error) {
+    if (error || !data) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
