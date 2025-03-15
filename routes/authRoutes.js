@@ -24,7 +24,7 @@ router.post('/signup', async (req, res) => {
   // Insert email and auth_id into the users table
   try {
     await knex('users').insert({
-      auth_id: data.user.id, // Supabase user ID
+      id: data.user.id, // Supabase user ID
       email: data.user.email,
     });
 
