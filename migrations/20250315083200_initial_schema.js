@@ -9,7 +9,7 @@ exports.up = function(knex) {
       table.string('phone_number');
       table.enum('gender', ['male', 'female', 'other']);
       table.string('profile_picture');
-      table.enum('role', ['admin', 'user', 'super_admin']).defaultTo('user'); // Updated enum
+      table.enum('role', ['admin', 'user', 'super_admin']); // Updated enum
       table.string('location');
       table.string('next_of_kin_name');
       table.string('next_of_kin_contact');

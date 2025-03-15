@@ -10,6 +10,10 @@ module.exports = {
   async getById(id) {
     return db(table).where({ id }).first();
   },
+
+  async getByName(name){
+    return db(table).where({ name }).first();
+  },
   
   async update(id, groupData) {
     return db(table).where({ id }).update(groupData).returning('*');

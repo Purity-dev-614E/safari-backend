@@ -8,6 +8,10 @@ module.exports = {
   async getGroupById(id) {
     return groupModel.getById(id);
   },
+
+  async getGroupByName(name){
+    return groupModel.getByName(name);
+  },
   
   async updateGroup(id, groupData) {
     return groupModel.update(id, groupData);

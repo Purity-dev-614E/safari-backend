@@ -29,6 +29,22 @@ module.exports = {
       res.status(500).json({ error: 'Failed to fetch group' });
     }
   },
+
+  async getGroupByName(req, res){
+    try{
+      const {name} = req.params;
+      const group = await groupService.getGroupByName(name);
+      if(!group){
+        return res.status(404).json({error: 'Group not found'})
+        }
+        res.status(200).json(group);
+
+    }catch(error){
+          console.error('Error fetching group:', error);
+          res.status(500).json({error: 'Failed to fetch group'});
+    }
+
+  },
   
   async updateGroup(req, res) {
     try {
