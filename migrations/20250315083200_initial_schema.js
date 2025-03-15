@@ -2,7 +2,7 @@ exports.up = function(knex) {
   return knex.schema
     // Users table
     .createTable('users', function(table) {
-      table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
+      table.uuid('id').primary(); // Remove auto-generation
       table.string('auth_id').notNullable().unique();
       table.string('email').notNullable().unique();
       table.string('full_name');
