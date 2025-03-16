@@ -16,6 +16,20 @@ module.exports = {
       res.status(500).json({ error: 'Failed to fetch user' });
     }
   },
+
+  async getUserByEmail(req, res){
+    try {
+      const { email } = req.params;
+      const user = await userService.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json(user);
+        } catch (error) {
+          console.error('Error fetching user:', error);
+          res.status(500).json({ error: 'Failed to fetch user' });
+          }
+  },
   
   async updateUser(req, res) {
     try {
