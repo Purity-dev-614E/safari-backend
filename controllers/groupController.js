@@ -133,10 +133,10 @@ module.exports = {
       const { groupId, userId } = req.body;
       const superAdminId = req.user.id; // Assuming req.user is set by the authenticate middleware
 
-      // Ensure the IDs are integers
-      if (isNaN(groupId) || isNaN(userId) || isNaN(superAdminId)) {
-        return res.status(400).json({ error: 'Invalid ID format. IDs must be integers.' });
-      }
+      // // Ensure the IDs are integers
+      // if (isNaN(groupId) || isNaN(userId) || isNaN(superAdminId)) {
+      //   return res.status(400).json({ error: 'Invalid ID format. IDs must be integers.' });
+      // }
 
       // Check if the user is a super admin
       const superAdmin = await userService.getUserById(superAdminId);
@@ -145,7 +145,7 @@ module.exports = {
       }
 
       // Check if the user to be assigned is an admin
-      const user = await userService.getUserById(userId);
+      const user = await userService.getUserBy;
       if (user.role !== 'admin') {
         return res.status(400).json({ error: 'User must be an admin to be assigned to a group' });
       }

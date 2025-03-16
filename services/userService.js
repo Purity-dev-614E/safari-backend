@@ -9,6 +9,10 @@ module.exports = {
   async getUserByEmail(email) {
     return userModel.getByEmail(email);
   },
+
+  async getUserByName(full_name){
+    return userModel.getByName(full_name);
+  },
   
   async updateUser(id, userData) {
     return userModel.update(id, userData);
@@ -20,5 +24,9 @@ module.exports = {
   
   async getAllUsers() {
     return userModel.getAll();
+  },
+
+  async updateProfilePicture(){
+    return userModel.updateProfilePicture
   }
 };

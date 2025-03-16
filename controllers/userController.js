@@ -30,6 +30,21 @@ module.exports = {
           res.status(500).json({ error: 'Failed to fetch user' });
           }
   },
+
+  async getUserByName(req, res){
+    try {
+      const { name } = req.params;
+      const user = await userService.getUserByName(name);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json(user);
+      } catch (error) {
+          console.error('Error fetching user:', error);
+          res.status(500).json({ error: 'Failed to fetch user' });
+      }
+
+  },
   
   async updateUser(req, res) {
     try {
@@ -71,6 +86,22 @@ module.exports = {
     } catch (error) {
       console.error('Error fetching users:', error);
       res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  },
+
+  async updateProfilePicture(){
+    try {
+      const { id } = req.params;
+      const { picture } = req.body;
+      const result = await userService.updateProfilePicture(id, picture);
+      if (!result || result.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json(result[0]);
+
+    } catch (error) {
+          console.error('Error updating profile picture:', error);
+          res.status(500).json({ error: 'Failed to update profile picture' });
     }
   }
 };

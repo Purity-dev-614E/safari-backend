@@ -11,6 +11,10 @@ module.exports = {
   async getByEmail(email) {
     return db(table).where({ email }).first();
   },
+
+  async getByName(){
+    return db(table).where({ full_name }).first();
+  },
   
   async update(id, userData) {
     return db(table).where({ id }).update(userData).returning('*');
@@ -23,4 +27,11 @@ module.exports = {
   async getAll() {
     return db(table).select('*');
   },
+
+  async updateProfilePicture(){
+    return db(table)
+    .where({id})
+    .update({profilePicture: req.file.filename})
+    .returning('*');
+  }
 };
