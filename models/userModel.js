@@ -12,7 +12,7 @@ module.exports = {
     return db(table).where({ email }).first();
   },
 
-  async getByName(){
+  async getByName(full_name){
     return db(table).where({ full_name }).first();
   },
   
