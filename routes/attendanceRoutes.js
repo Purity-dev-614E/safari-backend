@@ -11,9 +11,9 @@ router.get('/:id', attendanceController.getAttendanceById);
 router.put('/:id', attendanceController.updateAttendance);
 router.delete('/:id', attendanceController.deleteAttendance);
 
-app.get('/week', attendanceController.getAttendanceByTimePeriod);
-app.get('/month', attendanceController.getAttendanceByTimePeriod);
-app.get('/year', attendanceController.getAttendanceByTimePeriod);
+router.get('/week', attendanceController.getAttendanceByTimePeriod);
+router.get('/month', attendanceController.getAttendanceByTimePeriod);
+router.get('/year', attendanceController.getAttendanceByTimePeriod);
 
 // Event attendance
 router.get('/event/:eventId', attendanceController.getAttendanceByEvent);
