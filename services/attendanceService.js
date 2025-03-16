@@ -23,5 +23,9 @@ module.exports = {
   
   async getAttendanceByUser(userId) {
     return attendanceModel.getByUser(userId);
+  },
+
+  async getAttendanceByTimePeriod(start, end) {
+    return attendanceModel.getByTimePeriod(start, end);
   }
 };

@@ -13,6 +13,10 @@ router.get('/name', groupController.getGroupByName);
 router.put('/:id', groupController.updateGroup);
 router.delete('/:id', groupController.deleteGroup);
 
+router.get('/:id/groupDemographics', groupController.getGroupDemographics);
+
+
+
 // Group members
 router.get('/:id/members', groupController.getGroupMembers);
 router.post('/:id/members', groupController.addGroupMember);

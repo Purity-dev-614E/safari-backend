@@ -157,4 +157,15 @@ module.exports = {
       res.status(500).json({ error: 'Failed to assign admin to group' });
     }
   },
+
+  async getGroupDemographics(req, res) {
+    try {
+      const { groupId } = req.params;
+      const demographics = await groupService.getGroupDemographics(groupId);
+      res.status(200).json(demographics);
+    } catch (error) {
+      console.error('Error fetching group demographics:', error);
+      res.status(500).json({ error: 'Failed to fetch group demographics' });
+    }
+  }
 }
