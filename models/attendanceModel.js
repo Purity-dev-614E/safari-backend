@@ -36,7 +36,7 @@ module.exports = {
 
   async getByTimePeriod(start, end) {
     return db(table)
-      .whereBetween('date', [start, end])
+      .whereBetween('created_at', [start, end])
       .join('users', 'users.id', 'attendance.user_id')
       .join('events', 'events.id', 'attendance.event_id')
       .select('attendance.*', 'users.full_name', 'users.email', 'events.title', 'events.date');
