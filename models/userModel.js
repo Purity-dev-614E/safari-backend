@@ -12,9 +12,11 @@ module.exports = {
     return db(table).where({ email }).first();
   },
 
-  async getByName(full_name){
-    return db(table).where({ full_name }).first();
+  async getByName(full_name) {
+    return db(table)
+        .where('full_name', 'ilike', `%${full_name}%`);
   },
+
   
   async update(id, userData) {
     return db(table).where({ id }).update(userData).returning('*');

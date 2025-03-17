@@ -13,6 +13,6 @@ router.get('/:email', authenticate, userController.getUserByEmail)
 router.put('/:id', authenticate, userController.updateUser);
 router.delete('/:id', authenticate, userController.deleteUser);
 router.put('/:id/uploadimage', authenticate, userController.updateProfilePicture);
-router.get('/:name', authenticate, userController.getUserByName);
+router.get('/search', authenticate, userController.getUserByName);
 
 module.exports = router;
