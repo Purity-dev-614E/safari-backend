@@ -47,6 +47,14 @@ module.exports = {
       .where({ event_id: eventId, present: true }) // Filter only those marked as present
       .join('users', 'users.id', 'attendance.user_id')
       .select('users.id', 'users.full_name', 'users.email');
+  },
+
+  async getAttendanceStatus(eventId, userId) {
+    return db(table)
+      .where({ event_id: eventId, user_id: userId })
+      .select('present')
+      .first(); // Get only one record
   }
+  
   
 };

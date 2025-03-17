@@ -112,5 +112,15 @@ module.exports = {
         console.error('Error fetching attendance by attended users:', error);
         res.status(500).json({ error: 'Failed to fetch attendance by attended users' });
     }
+  },
+
+  async getAttendanceStatus(){
+    try {
+      const attendance = await attendanceService.getAttendanceStatus();
+      res.status(200).json(attendance);
+    }catch (error) {
+        console.error('Error fetching attendance status:', error);
+        res.status(500).json({ error: 'Failed to fetch attendance status' });
+    }
   }
 };

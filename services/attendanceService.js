@@ -31,5 +31,12 @@ module.exports = {
 
   async getByAttendedUsers(eventId){
     return attendanceModel.getByAttendedUsers(eventId);
-  }
+  },
+
+  async getAttendanceStatus(eventId, userId) {
+    const attendance = await attendanceModel.getAttendanceStatus(eventId, userId);
+    return attendance ? attendance.present : null; // Return true, false, or null if no record
+}
+
+
 };
