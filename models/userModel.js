@@ -13,8 +13,10 @@ module.exports = {
   },
 
   async getByName(full_name) {
-    return db(table)
-        .where('full_name', 'ilike', `%${full_name}%`);
+    if (!full_name || typeof full_name !== 'string') {
+        throw new Error('Invalid name format');
+    }
+    return db(table).whereILike('full_name', `%${full_name}%`);
   },
 
   
