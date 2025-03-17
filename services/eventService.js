@@ -23,5 +23,7 @@ module.exports = {
   
   async getEventsByGroup(groupId) {
     return eventModel.getByGroup(groupId);
-  }
+  },
+
+ 
 };

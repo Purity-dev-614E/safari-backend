@@ -40,5 +40,13 @@ module.exports = {
       .join('users', 'users.id', 'attendance.user_id')
       .join('events', 'events.id', 'attendance.event_id')
       .select('attendance.*', 'users.full_name', 'users.email', 'events.title', 'events.date');
+  },
+
+  async getByAttendedUsers(eventId) {
+    return db(table)
+      .where({ event_id: eventId, present: true }) // Filter only those marked as present
+      .join('users', 'users.id', 'attendance.user_id')
+      .select('users.id', 'users.full_name', 'users.email');
   }
+  
 };

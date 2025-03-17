@@ -102,5 +102,15 @@ module.exports = {
       console.error('Error fetching attendance by time period:', error);
       res.status(500).json({ error: 'Failed to fetch attendance by time period' });
     }
+  },
+
+  async getByAttendedUsers(){
+    try {
+      const attendance = await attendanceService.getByAttendedUsers();
+      res.status(200).json(attendance);
+    }catch (error) {
+        console.error('Error fetching attendance by attended users:', error);
+        res.status(500).json({ error: 'Failed to fetch attendance by attended users' });
+    }
   }
 };
