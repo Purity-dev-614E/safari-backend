@@ -32,10 +32,10 @@ module.exports = {
     return db(table).select('*');
   },
 
-  async updateProfilePicture(){
+  async updateProfilePicture(id, filename) {
     return db(table)
-    .where({id})
-    .update({profilePicture: req.file.filename})
-    .returning('*');
+      .where({ id })
+      .update({ profilePicture: filename })
+      .returning('*');
   }
 };

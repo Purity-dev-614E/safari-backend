@@ -34,9 +34,26 @@ module.exports = {
       .select('attendance.*', 'events.title', 'events.date');
   },
 
-  async getByTimePeriod(start, end) {
+  async getByTimePeriod(period) {
+    let startDate;
+    const now = new Date();
+
+    switch (period) {
+      case 'weekly':
+        startDate = new Date(now.setDate(now.getDate() - 7));
+        break;
+      case 'monthly':
+        startDate = new Date(now.setMonth(now.getMonth() - 1));
+        break;
+      case 'yearly':
+        startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+        break;
+      default:
+        throw new Error('Invalid period. Must be weekly, monthly, or yearly');
+    }
+
     return db(table)
-      .whereBetween('created_at', [start, end])
+      .where('attendance.created_at', '>=', startDate)
       .join('users', 'users.id', 'attendance.user_id')
       .join('events', 'events.id', 'attendance.event_id')
       .select('attendance.*', 'users.full_name', 'users.email', 'events.title', 'events.date');

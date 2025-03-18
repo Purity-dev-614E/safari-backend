@@ -33,17 +33,19 @@ module.exports = {
 
   async getUserByName(req, res){
     try {
-      const { name } = req.params;
-      const user = await userService.getUserByName(name);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(200).json(user);
-      } catch (error) {
-          console.error('Error fetching user:', error);
-          res.status(500).json({ error: 'Failed to fetch user' });
+      const { name } = req.query;
+      if (!name) {
+        return res.status(400).json({ error: 'Name parameter is required' });
       }
-
+      const user = await userService.getUserByName(name);
+      if (!user || user.length === 0) {
+        return res.status(404).json({ error: 'No users found' });
+      }
+      res.status(200).json(user);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
   },
   
   async updateUser(req, res) {
