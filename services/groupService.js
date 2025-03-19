@@ -22,7 +22,8 @@ module.exports = {
   },
 
   async assignAdminToGroup(groupId, userId) {
-    return groupModel.assignAdmin(groupId, userId);
+    await groupModel.assignAdmin(groupId, userId);
+    return groupModel.updateGroupAdmin(groupId, userId);
   },
   
   async getAllGroups() {

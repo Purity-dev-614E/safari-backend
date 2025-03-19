@@ -1,5 +1,6 @@
 const groupService = require('../services/groupService');
-const userService = require('../services/userService');
+const userService =  require('../services/userService')
+
 
 module.exports = {
   async createGroup(req, res) {
@@ -145,7 +146,7 @@ module.exports = {
       }
 
       const result = await groupService.assignAdminToGroup(groupId, userId);
-      res.status(200).json(result);
+      res.status(200).json(result[0]);
     } catch (error) {
       console.error('Error assigning admin to group:', error);
       res.status(500).json({ error: 'Failed to assign admin to group' });
@@ -162,4 +163,4 @@ module.exports = {
       res.status(500).json({ error: 'Failed to fetch group demographics' });
     }
   }
-};
+}

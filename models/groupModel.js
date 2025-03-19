@@ -28,25 +28,15 @@ module.exports = {
   },
 
   async assignAdmin(groupId, userId) {
-    const trx = await db.transaction();
-    try {
-      await trx('users_groups')
-        .insert({ user_id: userId, group_id: groupId, role: 'admin' })
-        .onConflict(['user_id', 'group_id'])
-        .merge({ role: 'admin' })
-        .returning('*');
-      
-      const result = await trx(table)
-        .where({ id: groupId })
-        .update({ group_admin_id: userId })
-        .returning('*');
-      
-      await trx.commit();
-      return result[0];
-    } catch (error) {
-      await trx.rollback();
-      throw error;
-    }
+    return db('users_groups').insert({
+      user_id: userId,
+      group_id: groupId,
+      role: 'admin' // Now we have a role column in the users_groups table
+    }).returning('*');
+  },
+
+  async updateGroupAdmin(groupId, userId) {
+    return db(table).where({ id: groupId }).update({ group_admin_id: userId }).returning('*');
   },
   
   async getMembers(groupId) {
@@ -57,11 +47,11 @@ module.exports = {
   },
   
   async addMember(groupId, userId, role = 'user') {
-    return db('users_groups')
-      .insert({ user_id: userId, group_id: groupId, role: role }) // Default role is 'member'
-      .returning('*')
-      .onConflict(['user_id', 'group_id'])
-      .merge({ role });
+    return db('users_groups').insert({
+      user_id: userId,
+      group_id: groupId,
+      role: role // Default role is 'member'
+    }).returning('*');
   },
   
   async removeMember(groupId, userId) {
