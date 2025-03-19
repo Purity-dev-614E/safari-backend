@@ -62,5 +62,8 @@ module.exports = {
       console.error('Error fetching group demographics:', error);
       throw new Error('Failed to fetch group demographics');
     }
+  },
+  async getAdminGroups(userId) {
+    return groupModel.getAdminGroups(userId);
   }
 };

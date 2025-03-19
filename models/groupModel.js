@@ -66,5 +66,11 @@ module.exports = {
     return db('users_groups')
       .where({ group_id: groupId, user_id: userId })
       .del();
+  },
+  async getAdminGroups(userId) {
+    return db('users_groups')
+      .where({ user_id: userId, role: 'admin' })
+      .join('groups', 'users_groups.group_id', 'groups.id')
+      .select('groups.*');
   }
 };
