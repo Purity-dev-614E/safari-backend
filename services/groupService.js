@@ -57,5 +57,4 @@ module.exports = {
       throw new Error('Failed to fetch group demographics');
     }
   }
-
 };

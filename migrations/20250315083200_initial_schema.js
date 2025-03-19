@@ -9,22 +9,18 @@ exports.up = function(knex) {
       table.string('phone_number');
       table.enum('gender', ['male', 'female', 'other']);
       table.string('profile_picture');
-      table.enum('role', ['admin', 'user', 'super admin']); // Updated enum
+      table.enum('role', ['admin', 'user', 'super_admin']); // Updated enum
       table.string('location');
       table.string('next_of_kin_name');
       table.string('next_of_kin_contact');
       table.timestamps(true, true);
     })
     
-    // Groups table with group_admin_id
+    // Groups table
     .createTable('groups', function(table) {
       table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
       table.string('name').notNullable();
-      table.uuid('group_admin_id')
-        .references('id')
-        .inTable('users')
-        .onDelete('SET NULL') // If the admin is deleted, set to NULL
-        .onUpdate('CASCADE'); // Ensure updates are reflected
+      table.uuid('group_admin_id').references('id').inTable('users').onDelete('SET NULL');
       table.timestamps(true, true);
     })
     
