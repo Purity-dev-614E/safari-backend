@@ -22,7 +22,12 @@ module.exports = {
   },
 
   async assignAdminToGroup(groupId, userId) {
-    await groupModel.assignAdmin(groupId, userId);
+    const existingMember = await groupModel.isUserInGroup(groupId, userId);
+    if (existingMember) {
+      await groupModel.updateMemberRole(groupId, userId, 'admin');
+    } else {
+      await groupModel.assignAdmin(groupId, userId);
+    }
     return groupModel.updateGroupAdmin(groupId, userId);
   },
   

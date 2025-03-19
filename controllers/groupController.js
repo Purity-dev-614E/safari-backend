@@ -135,7 +135,7 @@ module.exports = {
 
       // Check if the user is a super admin
       const superAdmin = await userService.getUserById(superAdminId);
-      if (superAdmin.role !== 'super admin') {
+      if (superAdmin.role !== 'super_admin') {
         return res.status(403).json({ error: 'Only super admins can assign admins to groups' });
       }
 

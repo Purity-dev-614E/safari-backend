@@ -38,6 +38,14 @@ module.exports = {
   async updateGroupAdmin(groupId, userId) {
     return db(table).where({ id: groupId }).update({ group_admin_id: userId }).returning('*');
   },
+
+  async isUserInGroup(groupId, userId) {
+    return db('users_groups').where({ group_id: groupId, user_id: userId }).first();
+  },
+
+  async updateMemberRole(groupId, userId, role) {
+    return db('users_groups').where({ group_id: groupId, user_id: userId }).update({ role }).returning('*');
+  },
   
   async getMembers(groupId) {
     return db('users_groups')
