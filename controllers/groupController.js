@@ -163,15 +163,18 @@ module.exports = {
       res.status(500).json({ error: 'Failed to fetch group demographics' });
     }
   },
-  
-  async getAdminGroups(req, res) {
+
+ async getAdminGroups(req, res) {
     try {
-      const userId = req.user.id;
-      const groups = await groupService.getAdminGroups(userId);
-      res.status(200).json(groups);
+        const userId = req.user.id;
+        console.log('Fetching admin groups for userId:', userId);
+        const groups = await groupService.getAdminGroups(userId);
+        console.log('Groups:', groups);
+        res.status(200).json(groups);
     } catch (error) {
-      console.error('Error fetching admin groups:', error);
-      res.status(500).json({ error: 'Failed to fetch admin groups' });
+        console.error('Error fetching admin groups:', error);
+        res.status(500).json({ error: 'Failed to fetch admin groups' });
     }
-  }
+}
+
 }
