@@ -9,7 +9,7 @@ exports.up = function(knex) {
       table.string('phone_number');
       table.enum('gender', ['male', 'female', 'other']);
       table.string('profile_picture');
-      table.enum('role', ['admin', 'user', 'super_admin']); // Updated enum
+      table.enum('role', ['admin', 'user', 'super admin']); // Updated enum
       table.string('location');
       table.string('next_of_kin_name');
       table.string('next_of_kin_contact');
@@ -30,7 +30,7 @@ exports.up = function(knex) {
       table.uuid('user_id').references('id').inTable('users').onDelete('CASCADE');
       table.uuid('group_id').references('id').inTable('groups').onDelete('CASCADE');
       table.unique(['user_id', 'group_id']);
-      table.enum('role', ['admin', 'user', 'super_admin']);
+      table.enum('role', ['admin', 'user', 'super admin']);
       table.timestamps(true, true);
     })
     
