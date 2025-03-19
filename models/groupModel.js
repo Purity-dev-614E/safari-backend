@@ -27,12 +27,13 @@ module.exports = {
     return db(table).select('*');
   },
 
+  
   async assignAdmin(groupId, userId) {
-    return db('users_groups').insert({
-      user_id: userId,
-      group_id: groupId,
-      role: 'admin' // Now we have a role column in the users_groups table
-    }).returning('*');
+    return db('users_groups')
+      .insert({ user_id: userId, group_id: groupId, role: 'admin' })
+      .onConflict(['user_id', 'group_id'])
+      .merge({ role: 'admin' })
+      .returning('*');
   },
   
   async getMembers(groupId) {
