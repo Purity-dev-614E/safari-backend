@@ -43,11 +43,11 @@ module.exports = {
   },
   
   async addGroupMember(groupId, userId) {
-    return groupModel.addMember(groupId, userId);
+    return groupModel.addGroupMember(groupId, userId);
   },
   
   async removeGroupMember(groupId, userId) {
-    return groupModel.removeMember(groupId, userId);
+    return groupModel.removeGroupMember(groupId, userId);
   },
 
   async getGroupDemographics(groupId) {
