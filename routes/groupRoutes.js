@@ -20,7 +20,7 @@ router.get('/:id/members', groupController.getGroupMembers);
 router.post('/:id/members', groupController.addGroupMember);
 router.delete('/:id/members/:userId', groupController.removeGroupMember);
 
-router.get('/admin/:userid/groups', groupController.getAdminGroups);
+router.get('/admin/:userId/groups', groupController.getAdminGroups); // Ensure this matches the frontend
 
 // Assign admin to group
 router.post('/assign-admin', groupController.assignAdminToGroup);
