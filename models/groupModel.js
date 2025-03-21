@@ -51,7 +51,7 @@ module.exports = {
     }
   },
 
-  async getAllGroups() {
+  async getAll() {
     try {
       const groups = await knex('groups').select('*');
       return groups;
