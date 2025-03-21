@@ -39,7 +39,7 @@ module.exports = {
   },
   
   async getGroupMembers(groupId) {
-    return groupModel.getMembers(groupId);
+    return groupModel.getGroupMembers(groupId);
   },
   
   async addGroupMember(groupId, userId) {
