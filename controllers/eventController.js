@@ -16,7 +16,11 @@ module.exports = {
 
       // Ensure the date is correctly formatted
       if (eventData.date) {
-        eventData.date = new Date(eventData.date).toISOString().replace('T', ' ').replace('Z', '');
+        const date = new Date(eventData.date);
+        if (isNaN(date.getTime())) {
+          return res.status(400).json({ error: 'Invalid date format' });
+        }
+        eventData.date = date.toISOString().replace('T', ' ').replace('Z', '');
       }
 
       eventData.group_id = groupId;
@@ -27,7 +31,7 @@ module.exports = {
       res.status(500).json({ error: 'Failed to create event' });
     }
   },
-  
+
   async getEventById(req, res) {
     try {
       const { id } = req.params;
@@ -43,11 +47,21 @@ module.exports = {
       res.status(500).json({ error: 'Failed to fetch event' });
     }
   },
-  
+
   async updateEvent(req, res) {
     try {
       const { id } = req.params;
       const eventData = req.body;
+
+      // Ensure the date is correctly formatted
+      if (eventData.date) {
+        const date = new Date(eventData.date);
+        if (isNaN(date.getTime())) {
+          return res.status(400).json({ error: 'Invalid date format' });
+        }
+        eventData.date = date.toISOString().replace('T', ' ').replace('Z', '');
+      }
+
       const result = await eventService.updateEvent(id, eventData);
       
       if (!result || result.length === 0) {
@@ -60,7 +74,7 @@ module.exports = {
       res.status(500).json({ error: 'Failed to update event' });
     }
   },
-  
+
   async deleteEvent(req, res) {
     try {
       const { id } = req.params;
@@ -76,7 +90,7 @@ module.exports = {
       res.status(500).json({ error: 'Failed to delete event' });
     }
   },
-  
+
   async getAllEvents(req, res) {
     try {
       const events = await eventService.getAllEvents();
@@ -86,7 +100,7 @@ module.exports = {
       res.status(500).json({ error: 'Failed to fetch events' });
     }
   },
-  
+
   async getEventsByGroup(req, res) {
     try {
       const { groupId } = req.params;
