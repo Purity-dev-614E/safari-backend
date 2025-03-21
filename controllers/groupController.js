@@ -162,7 +162,9 @@ module.exports = {
   async getAdminGroups(req, res) {
     try {
       const { userId } = req.params;
+      console.log(`Fetching groups for admin userId: ${userId}`);
       const groups = await groupService.getAdminGroups(userId);
+      console.log(`Fetched groups: ${JSON.stringify(groups)}`);
       res.status(200).json(groups);
     } catch (error) {
       console.error('Error fetching admin groups:', error);
