@@ -8,7 +8,7 @@ module.exports = {
   },
   
   async getGroupById(id) {
-    return groupModel.getById(id);
+    return groupModel.getGroupById(id);
   },
 
   async getGroupByName(name){
