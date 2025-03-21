@@ -29,7 +29,7 @@ app.use('/api/attendance', attendanceRoutes);
 
 // Default route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the Church Management API' });
+  res.json({ message: 'Welcome to the Church Management API for Safari App' });
 });
 
 // 404 handler
