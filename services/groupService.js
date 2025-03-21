@@ -1,5 +1,7 @@
 const groupModel = require('../models/groupModel');
 
+const knex = require('../db');
+
 module.exports = {
   async createGroup(groupData) {
     return groupModel.create(groupData);
@@ -64,11 +66,12 @@ module.exports = {
       throw new Error('Failed to fetch group demographics');
     }
   },
+  
   async getAdminGroups(userId) {
     try {
-      const groups = await knex('groups')
-        .where({ group_admin_id: userId })
-        .select('*');
+      console.log(`Querying groups for admin userId: ${userId}`);
+      const groups = await knex('groups').where({ group_admin_id: userId }).select('*');
+      console.log(`Queried groups: ${JSON.stringify(groups)}`);
       return groups;
     } catch (error) {
       console.error('Error fetching admin groups:', error);
