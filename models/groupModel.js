@@ -1,76 +1,130 @@
-const db = require('../db');
-
-const table = 'groups';
+const knex = require('../db');
 
 module.exports = {
-  async create(groupData) {
-    return db(table).insert(groupData).returning('*');
-  },
-  
-  async getById(id) {
-    return db(table).where({ id }).first();
-  },
-
-  async getByName(name){
-    return db(table).where({ name }).first();
-  },
-  
-  async update(id, groupData) {
-    return db(table).where({ id }).update(groupData).returning('*');
-  },
-  
-  async delete(id) {
-    return db(table).where({ id }).del();
-  },
-  
-  async getAll() {
-    return db(table).select('*');
+  async createGroup(groupData) {
+    try {
+      const result = await knex('groups').insert(groupData).returning('*');
+      return result;
+    } catch (error) {
+      console.error('Error creating group:', error);
+      throw new Error('Failed to create group');
+    }
   },
 
-  async assignAdmin(groupId, userId) {
-    return db('users_groups').insert({
-      user_id: userId,
-      group_id: groupId,
-      role: 'admin' // Now we have a role column in the users_groups table
-    }).returning('*');
+  async getGroupById(id) {
+    try {
+      const group = await knex('groups').where({ id }).first();
+      return group;
+    } catch (error) {
+      console.error('Error fetching group by ID:', error);
+      throw new Error('Failed to fetch group by ID');
+    }
   },
 
-  async updateGroupAdmin(groupId, userId) {
-    return db(table).where({ id: groupId }).update({ group_admin_id: userId }).returning('*');
+  async getGroupByName(name) {
+    try {
+      const group = await knex('groups').where({ name }).first();
+      return group;
+    } catch (error) {
+      console.error('Error fetching group by name:', error);
+      throw new Error('Failed to fetch group by name');
+    }
   },
 
-  async isUserInGroup(groupId, userId) {
-    return db('users_groups').where({ group_id: groupId, user_id: userId }).first();
+  async updateGroup(id, groupData) {
+    try {
+      const result = await knex('groups').where({ id }).update(groupData).returning('*');
+      return result;
+    } catch (error) {
+      console.error('Error updating group:', error);
+      throw new Error('Failed to update group');
+    }
   },
 
-  async updateMemberRole(groupId, userId, role) {
-    return db('users_groups').where({ group_id: groupId, user_id: userId }).update({ role }).returning('*');
+  async deleteGroup(id) {
+    try {
+      const result = await knex('groups').where({ id }).del();
+      return result;
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      throw new Error('Failed to delete group');
+    }
   },
-  
-  async getMembers(groupId) {
-    return db('users_groups')
-      .where({ group_id: groupId })
-      .join('users', 'users.id', 'users_groups.user_id')
-      .select('users.*', 'users_groups.role'); // Include the role field
+
+  async getAllGroups() {
+    try {
+      const groups = await knex('groups').select('*');
+      return groups;
+    } catch (error) {
+      console.error('Error fetching all groups:', error);
+      throw new Error('Failed to fetch all groups');
+    }
   },
-  
-  async addMember(groupId, userId, role = 'user') {
-    return db('users_groups').insert({
-      user_id: userId,
-      group_id: groupId,
-      role: role // Default role is 'member'
-    }).returning('*');
+
+  async getGroupMembers(groupId) {
+    try {
+      const members = await knex('users_groups')
+        .join('users', 'users_groups.user_id', 'users.id')
+        .where('users_groups.group_id', groupId)
+        .select('users.*');
+      return members;
+    } catch (error) {
+      console.error('Error fetching group members:', error);
+      throw new Error('Failed to fetch group members');
+    }
   },
-  
-  async removeMember(groupId, userId) {
-    return db('users_groups')
-      .where({ group_id: groupId, user_id: userId })
-      .del();
+
+  async addGroupMember(groupId, userId) {
+    try {
+      const result = await knex('users_groups').insert({ group_id: groupId, user_id: userId }).returning('*');
+      return result;
+    } catch (error) {
+      console.error('Error adding group member:', error);
+      throw new Error('Failed to add group member');
+    }
   },
+
+  async removeGroupMember(groupId, userId) {
+    try {
+      await knex('users_groups').where({ group_id: groupId, user_id: userId }).del();
+    } catch (error) {
+      console.error('Error removing group member:', error);
+      throw new Error('Failed to remove group member');
+    }
+  },
+
+  async assignAdminToGroup(groupId, userId) {
+    try {
+      await knex('groups').where({ id: groupId }).update({ group_admin_id: userId });
+    } catch (error) {
+      console.error('Error assigning admin to group:', error);
+      throw new Error('Failed to assign admin to group');
+    }
+  },
+
   async getAdminGroups(userId) {
-    return db('users_groups')
-      .where({ user_id: userId, role: 'admin' })
-      .join('groups', 'users_groups.group_id', 'groups.id')
-      .select('groups.*');
+    try {
+      const groups = await knex('groups').where({ group_admin_id: userId }).select('*');
+      return groups;
+    } catch (error) {
+      console.error('Error fetching admin groups:', error);
+      throw new Error('Failed to fetch admin groups');
+    }
+  },
+
+  async getGroupDemographics(groupId) {
+    try {
+      const demographics = await knex('users_groups')
+        .join('users', 'users_groups.user_id', 'users.id')
+        .join('groups', 'users_groups.group_id', 'groups.id')
+        .select('groups.name as group_name', 'users.gender', 'users.role')
+        .where('groups.id', groupId)
+        .groupBy('groups.name', 'users.gender', 'users.role')
+        .count('users.id as user_count');
+      return demographics;
+    } catch (error) {
+      console.error('Error fetching group demographics:', error);
+      throw new Error('Failed to fetch group demographics');
+    }
   }
 };

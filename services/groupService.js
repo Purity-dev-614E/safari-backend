@@ -22,13 +22,14 @@ module.exports = {
   },
 
   async assignAdminToGroup(groupId, userId) {
-    const existingMember = await groupModel.isUserInGroup(groupId, userId);
-    if (existingMember) {
-      await groupModel.updateMemberRole(groupId, userId, 'admin');
-    } else {
-      await groupModel.assignAdmin(groupId, userId);
+    try {
+      await knex('groups')
+        .where({ id: groupId })
+        .update({ group_admin_id: userId });
+    } catch (error) {
+      console.error('Error assigning admin to group:', error);
+      throw new Error('Failed to assign admin to group');
     }
-    return groupModel.updateGroupAdmin(groupId, userId);
   },
   
   async getAllGroups() {
@@ -64,6 +65,14 @@ module.exports = {
     }
   },
   async getAdminGroups(userId) {
-    return groupModel.getAdminGroups(userId);
+    try {
+      const groups = await knex('groups')
+        .where({ group_admin_id: userId })
+        .select('*');
+      return groups;
+    } catch (error) {
+      console.error('Error fetching admin groups:', error);
+      throw new Error('Failed to fetch admin groups');
+    }
   }
 };

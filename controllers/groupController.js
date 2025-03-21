@@ -135,18 +135,13 @@ module.exports = {
 
       // Check if the user is a super admin
       const superAdmin = await userService.getUserById(superAdminId);
-      if (superAdmin.role !== 'super admin') {
+      if (superAdmin.role !== 'super_admin') {
         return res.status(403).json({ error: 'Only super admins can assign admins to groups' });
       }
 
-      // Check if the user to be assigned is an admin
-      const user = await userService.getUserById(userId);
-      if (user.role !== 'admin') {
-        return res.status(400).json({ error: 'User must be an admin to be assigned to a group' });
-      }
-
-      const result = await groupService.assignAdminToGroup(groupId, userId);
-      res.status(200).json(result[0]);
+      // Assign admin to group
+      await groupService.assignAdminToGroup(groupId, userId);
+      res.status(200).json({ message: 'Admin assigned to group successfully' });
     } catch (error) {
       console.error('Error assigning admin to group:', error);
       res.status(500).json({ error: 'Failed to assign admin to group' });
@@ -164,17 +159,15 @@ module.exports = {
     }
   },
 
- async getAdminGroups(req, res) {
+  async getAdminGroups(req, res) {
     try {
-        const userId = req.user.id;
-        console.log('Fetching admin groups for userId:', userId);
-        const groups = await groupService.getAdminGroups(userId);
-        console.log('Groups:', groups);
-        res.status(200).json(groups);
+      const { userId } = req.params;
+      const groups = await groupService.getAdminGroups(userId);
+      res.status(200).json(groups);
     } catch (error) {
-        console.error('Error fetching admin groups:', error);
-        res.status(500).json({ error: 'Failed to fetch admin groups' });
+      console.error('Error fetching admin groups:', error);
+      res.status(500).json({ error: 'Failed to fetch admin groups' });
     }
-}
+  }
 
 }
