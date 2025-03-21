@@ -8,10 +8,15 @@ module.exports = {
       const eventData = req.body;
       const userId = req.user.id; // Assuming req.user is set by the authenticate middleware
 
-      // Check if the user is an admin (temporarily disabled)
+      // Check if the user is an admin
       const user = await userService.getUserById(userId);
       if (user.role !== 'admin') {
         return res.status(403).json({ error: 'Only admins can create events' });
+      }
+
+      // Ensure the date is correctly formatted
+      if (eventData.date) {
+        eventData.date = new Date(eventData.date).toISOString().replace('T', ' ').replace('Z', '');
       }
 
       eventData.group_id = groupId;
