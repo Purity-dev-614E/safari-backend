@@ -1,5 +1,6 @@
 const groupService = require('../services/groupService');
 const userService =  require('../services/userService')
+const attendanceService = require('../services/attendanceService');
 
 
 module.exports = {
@@ -170,6 +171,28 @@ module.exports = {
       console.error('Error fetching admin groups:', error);
       res.status(500).json({ error: 'Failed to fetch admin groups' });
     }
-  }
- 
+  },
+
 }
+// Fetch attendance by group and period
+exports.getAttendanceByGroupAndPeriod = async (req, res) => {
+  const { id } = req.params;
+  const { period } = req.query;
+  try {
+      const attendance = await attendanceService.getAttendanceByGroupAndPeriod(id, period);
+      res.status(200).json(attendance);
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch attendance' });
+  }
+};
+
+// Fetch overall attendance by period
+exports.getOverallAttendanceByPeriod = async (req, res) => {
+  const { period } = req.query;
+  try {
+      const attendance = await attendanceService.getOverallAttendanceByPeriod(period);
+      res.status(200).json(attendance);
+  } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch attendance' });
+  }
+};

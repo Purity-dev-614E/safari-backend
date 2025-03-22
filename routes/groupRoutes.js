@@ -25,4 +25,9 @@ router.get('/admin/:userId/groups', groupController.getAdminGroups); // Ensure t
 // Assign admin to group
 router.post('/assign-admin', groupController.assignAdminToGroup);
 
+// Fetch attendance by group and period
+router.get('/:id/attendance', groupController.getAttendanceByGroupAndPeriod);
+
+
+
 module.exports = router;
