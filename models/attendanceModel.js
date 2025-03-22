@@ -1,5 +1,5 @@
 const db = require('../db');
-const { getAttendanceByTimePeriod } = require('../services/attendanceService');
+const { v4: uuidv4, validate: uuidValidate } = require('uuid');
 
 const table = 'attendance';
 
@@ -9,18 +9,30 @@ module.exports = {
   },
   
   async getById(id) {
+    if (!uuidValidate(id)) {
+      throw new Error('Invalid UUID format');
+    }
     return db(table).where({ id }).first();
   },
   
   async update(id, attendanceData) {
+    if (!uuidValidate(id)) {
+      throw new Error('Invalid UUID format');
+    }
     return db(table).where({ id }).update(attendanceData).returning('*');
   },
   
   async delete(id) {
+    if (!uuidValidate(id)) {
+      throw new Error('Invalid UUID format');
+    }
     return db(table).where({ id }).del();
   },
   
   async getByEvent(eventId) {
+    if (!uuidValidate(eventId)) {
+      throw new Error('Invalid UUID format');
+    }
     return db(table)
       .where({ event_id: eventId })
       .join('users', 'users.id', 'attendance.user_id')
@@ -28,6 +40,9 @@ module.exports = {
   },
   
   async getByUser(userId) {
+    if (!uuidValidate(userId)) {
+      throw new Error('Invalid UUID format');
+    }
     return db(table)
       .where({ user_id: userId })
       .join('events', 'events.id', 'attendance.event_id')
@@ -60,6 +75,9 @@ module.exports = {
   },
 
   async getByAttendedUsers(eventId) {
+    if (!uuidValidate(eventId)) {
+      throw new Error('Invalid UUID format');
+    }
     return db(table)
       .where({ event_id: eventId, present: true }) // Filter only those marked as present
       .join('users', 'users.id', 'attendance.user_id')
@@ -67,11 +85,12 @@ module.exports = {
   },
 
   async getAttendanceStatus(eventId, userId) {
+    if (!uuidValidate(eventId) || !uuidValidate(userId)) {
+      throw new Error('Invalid UUID format');
+    }
     return db(table)
       .where({ event_id: eventId, user_id: userId })
       .select('present')
       .first(); // Get only one record
   }
-  
-  
 };
