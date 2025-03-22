@@ -95,8 +95,8 @@ module.exports = {
 
   async getAttendanceByTimePeriod(req, res) {
     try {
-      const { start, end } = req.query;
-      const attendance = await attendanceService.getAttendanceByTimePeriod(start, end);
+      const { period } = req.query;
+      const attendance = await attendanceService.getAttendanceByTimePeriod(period);
       res.status(200).json(attendance);
     } catch (error) {
       console.error('Error fetching attendance by time period:', error);

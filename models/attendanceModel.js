@@ -39,13 +39,13 @@ module.exports = {
     const now = new Date();
 
     switch (period) {
-      case 'weekly':
+      case 'week':
         startDate = new Date(now.setDate(now.getDate() - 7));
         break;
-      case 'monthly':
+      case 'month':
         startDate = new Date(now.setMonth(now.getMonth() - 1));
         break;
-      case 'yearly':
+      case 'year':
         startDate = new Date(now.setFullYear(now.getFullYear() - 1));
         break;
       default:
