@@ -1,7 +1,6 @@
 const groupService = require('../services/groupService');
-const userService =  require('../services/userService')
+const userService = require('../services/userService');
 const attendanceService = require('../services/attendanceService');
-
 
 module.exports = {
   async createGroup(req, res) {
@@ -31,20 +30,18 @@ module.exports = {
     }
   },
 
-  async getGroupByName(req, res){
-    try{
-      const {name} = req.params;
+  async getGroupByName(req, res) {
+    try {
+      const { name } = req.query;
       const group = await groupService.getGroupByName(name);
-      if(!group){
-        return res.status(404).json({error: 'Group not found'})
-        }
-        res.status(200).json(group);
-
-    }catch(error){
-          console.error('Error fetching group:', error);
-          res.status(500).json({error: 'Failed to fetch group'});
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      res.status(200).json(group);
+    } catch (error) {
+      console.error('Error fetching group:', error);
+      res.status(500).json({ error: 'Failed to fetch group' });
     }
-
   },
   
   async updateGroup(req, res) {
@@ -151,8 +148,8 @@ module.exports = {
 
   async getGroupDemographics(req, res) {
     try {
-      const { groupId } = req.params;
-      const demographics = await groupService.getGroupDemographics(groupId);
+      const { id } = req.params;
+      const demographics = await groupService.getGroupDemographics(id);
       res.status(200).json(demographics);
     } catch (error) {
       console.error('Error fetching group demographics:', error);
@@ -173,26 +170,26 @@ module.exports = {
     }
   },
 
-}
-// Fetch attendance by group and period
-exports.getAttendanceByGroupAndPeriod = async (req, res) => {
-  const { id } = req.params;
-  const { period } = req.query;
-  try {
+  // Fetch attendance by group and period
+  async getAttendanceByGroupAndPeriod(req, res) {
+    const { id } = req.params;
+    const { period } = req.query;
+    try {
       const attendance = await attendanceService.getAttendanceByGroupAndPeriod(id, period);
       res.status(200).json(attendance);
-  } catch (error) {
+    } catch (error) {
       res.status(500).json({ error: 'Failed to fetch attendance' });
-  }
-};
+    }
+  },
 
-// Fetch overall attendance by period
-exports.getOverallAttendanceByPeriod = async (req, res) => {
-  const { period } = req.query;
-  try {
+  // Fetch overall attendance by period
+  async getOverallAttendanceByPeriod(req, res) {
+    const { period } = req.query;
+    try {
       const attendance = await attendanceService.getOverallAttendanceByPeriod(period);
       res.status(200).json(attendance);
-  } catch (error) {
+    } catch (error) {
       res.status(500).json({ error: 'Failed to fetch attendance' });
+    }
   }
 };
