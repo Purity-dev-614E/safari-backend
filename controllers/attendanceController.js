@@ -1,19 +1,9 @@
 const attendanceService = require('../services/attendanceService');
-const eventService = require('../services/eventService');
 
 module.exports = {
   async createAttendance(req, res) {
     try {
-      const { eventId } = req.params;
       const attendanceData = req.body;
-
-      // Ensure the event exists and is associated with a group
-      const event = await eventService.getEventById(eventId);
-      if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
-      }
-
-      attendanceData.event_id = eventId;
       const result = await attendanceService.createAttendance(attendanceData);
       res.status(201).json(result[0]);
     } catch (error) {
@@ -26,15 +16,10 @@ module.exports = {
     try {
       const { id } = req.params;
       const attendance = await attendanceService.getAttendanceById(id);
-
-      if (!attendance) {
-        return res.status(404).json({ error: 'Attendance record not found' });
-      }
-
       res.status(200).json(attendance);
     } catch (error) {
-      console.error('Error fetching attendance:', error);
-      res.status(500).json({ error: 'Failed to fetch attendance' });
+      console.error('Error fetching attendance by ID:', error);
+      res.status(500).json({ error: 'Failed to fetch attendance by ID' });
     }
   },
 
@@ -43,11 +28,6 @@ module.exports = {
       const { id } = req.params;
       const attendanceData = req.body;
       const result = await attendanceService.updateAttendance(id, attendanceData);
-
-      if (!result || result.length === 0) {
-        return res.status(404).json({ error: 'Attendance record not found' });
-      }
-
       res.status(200).json(result[0]);
     } catch (error) {
       console.error('Error updating attendance:', error);
@@ -58,12 +38,7 @@ module.exports = {
   async deleteAttendance(req, res) {
     try {
       const { id } = req.params;
-      const result = await attendanceService.deleteAttendance(id);
-
-      if (result === 0) {
-        return res.status(404).json({ error: 'Attendance record not found' });
-      }
-
+      await attendanceService.deleteAttendance(id);
       res.status(204).end();
     } catch (error) {
       console.error('Error deleting attendance:', error);
@@ -77,8 +52,8 @@ module.exports = {
       const attendance = await attendanceService.getAttendanceByEvent(eventId);
       res.status(200).json(attendance);
     } catch (error) {
-      console.error('Error fetching event attendance:', error);
-      res.status(500).json({ error: 'Failed to fetch event attendance' });
+      console.error('Error fetching attendance by event:', error);
+      res.status(500).json({ error: 'Failed to fetch attendance by event' });
     }
   },
 
@@ -88,8 +63,8 @@ module.exports = {
       const attendance = await attendanceService.getAttendanceByUser(userId);
       res.status(200).json(attendance);
     } catch (error) {
-      console.error('Error fetching user attendance:', error);
-      res.status(500).json({ error: 'Failed to fetch user attendance' });
+      console.error('Error fetching attendance by user:', error);
+      res.status(500).json({ error: 'Failed to fetch attendance by user' });
     }
   },
 
@@ -104,23 +79,25 @@ module.exports = {
     }
   },
 
-  async getByAttendedUsers(){
+  async getByAttendedUsers(req, res) {
     try {
-      const attendance = await attendanceService.getByAttendedUsers();
+      const { eventId } = req.params;
+      const attendance = await attendanceService.getByAttendedUsers(eventId);
       res.status(200).json(attendance);
-    }catch (error) {
-        console.error('Error fetching attendance by attended users:', error);
-        res.status(500).json({ error: 'Failed to fetch attendance by attended users' });
+    } catch (error) {
+      console.error('Error fetching attended users:', error);
+      res.status(500).json({ error: 'Failed to fetch attended users' });
     }
   },
 
-  async getAttendanceStatus(){
+  async getAttendanceStatus(req, res) {
     try {
-      const attendance = await attendanceService.getAttendanceStatus();
-      res.status(200).json(attendance);
-    }catch (error) {
-        console.error('Error fetching attendance status:', error);
-        res.status(500).json({ error: 'Failed to fetch attendance status' });
+      const { eventId, userId } = req.params;
+      const status = await attendanceService.getAttendanceStatus(eventId, userId);
+      res.status(200).json(status);
+    } catch (error) {
+      console.error('Error fetching attendance status:', error);
+      res.status(500).json({ error: 'Failed to fetch attendance status' });
     }
   }
 };
