@@ -16,7 +16,7 @@ router.get('/week', attendanceController.getAttendanceByTimePeriod);
 router.get('/month', attendanceController.getAttendanceByTimePeriod);
 router.get('/year', attendanceController.getAttendanceByTimePeriod);
 
-router.get('attended-members', attendanceController.getByAttendedUsers);
+router.get('/event/:eventId/attended-members', attendanceController.getByAttendedUsers);
 router.get('/status', attendanceController.getAttendanceStatus);
 
 // Event attendance
