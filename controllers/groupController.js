@@ -185,6 +185,7 @@ module.exports = {
   // Fetch overall attendance by period
   async getOverallAttendanceByPeriod(req, res) {
     const { period } = req.query;
+    console.log(`Fetching overall attendance for period: ${period}`);
     try {
       const attendance = await attendanceService.getOverallAttendanceByPeriod(period);
       res.status(200).json(attendance);
