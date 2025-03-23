@@ -184,12 +184,13 @@ module.exports = {
 
   // Fetch overall attendance by period
   async getOverallAttendanceByPeriod(req, res) {
-    const { period } = req.query;
+    const { period } = req.params;
     console.log(`Fetching overall attendance for period: ${period}`);
     try {
       const attendance = await attendanceService.getOverallAttendanceByPeriod(period);
       res.status(200).json(attendance);
     } catch (error) {
+      console.error('Error fetching overall attendance by period:', error);
       res.status(500).json({ error: 'Failed to fetch attendance' });
     }
   }
