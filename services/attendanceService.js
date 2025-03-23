@@ -53,6 +53,7 @@ module.exports = {
     const startDate = calculateStartDate(period);
     return knex('attendance')
         .where('created_at', '>=', startDate)
+        .andWhere('present', true)
         .select('*');
   }
 };

@@ -29,6 +29,6 @@ router.post('/assign-admin', groupController.assignAdminToGroup);
 router.get('/:id/attendance', groupController.getAttendanceByGroupAndPeriod);
 
 // Fetch overall attendance by period
-router.get('/attendance', groupController.getOverallAttendanceByPeriod);
+router.get('/attendance/:period', groupController.getOverallAttendanceByPeriod);
 
 module.exports = router;
