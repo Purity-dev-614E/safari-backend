@@ -50,11 +50,16 @@ module.exports = {
 
   // Fetch overall attendance by period
   async getOverallAttendanceByPeriod(period) {
+    try{
     const startDate = calculateStartDate(period);
     return knex('attendance')
         .where('created_at', '>=', startDate)
         .andWhere('present', true)
         .select('*');
+    }catch(error){
+      console.error('Error fetching overall attendance by period:', error);
+      throw new Error('Failed to fetch overall attendance by period');
+    }
   }
 };
 
