@@ -26,6 +26,6 @@ router.get('/event/:eventId', attendanceController.getAttendanceByEvent);
 router.get('/user/:userId', attendanceController.getAttendanceByUser);
 
 // Fetch overall attendance by period
-router.get('/', groupController.getOverallAttendanceByPeriod);
+router.get('/:period', groupController.getOverallAttendanceByPeriod);
 
 module.exports = router;
