@@ -38,7 +38,7 @@ module.exports = {
   const fileName = await saveProfilePicture(base64Image, id);
   return db(table)
     .where({ id })
-    .update({ profilePicture: fileName })
+    .update({ profile_picture: fileName })
     .returning('*');
  }
 };

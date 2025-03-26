@@ -108,7 +108,7 @@ module.exports = {
   
       res.status(200).json({
         message: 'Profile picture updated successfully',
-        url: `/uploads/${result[0].profilePicture}`, // Return the image URL
+        url: `/uploads/${result[0].profile_picture}`, // Return the image URL
       });
     } catch (error) {
       console.error('Error updating profile picture:', error);
