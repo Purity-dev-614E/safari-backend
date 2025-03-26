@@ -173,7 +173,7 @@ module.exports = {
   // Fetch attendance by group and period
   async getAttendanceByGroupAndPeriod(req, res) {
     const { id } = req.params;
-    const { period } = req.query;
+    const { period } = req.params;
     try {
       const attendance = await attendanceService.getAttendanceByGroupAndPeriod(id, period);
       res.status(200).json(attendance);
