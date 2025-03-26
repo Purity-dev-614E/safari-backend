@@ -91,22 +91,25 @@ module.exports = {
     }
   },
 
-  async updateProfilePicture(req, res) {
+    async updateProfilePicture(req, res) {
     try {
       const { id } = req.params; // User ID from the route parameter
-      const { base64Image } = req.body; // Base64 image from the request body
+      const { image } = req.body; // Base64 image from the request body
   
-      if (!base64Image) {
+      if (!image) {
         return res.status(400).json({ error: 'Base64 image is required' });
       }
   
-      const result = await userService.updateProfilePicture(id, base64Image);
+      const result = await userService.updateProfilePicture(id, image);
   
       if (!result || result.length === 0) {
         return res.status(404).json({ error: 'User not found' });
       }
   
-      res.status(200).json({ message: 'Profile picture updated successfully', user: result[0] });
+      res.status(200).json({
+        message: 'Profile picture updated successfully',
+        url: `/uploads/${result[0].profilePicture}`, // Return the image URL
+      });
     } catch (error) {
       console.error('Error updating profile picture:', error);
       res.status(500).json({ error: 'Failed to update profile picture' });
