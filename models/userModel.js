@@ -1,4 +1,6 @@
 const db = require('../db');
+const fs = require('fs');
+const path = require('path');
 
 const table = 'users';
 
@@ -32,10 +34,25 @@ module.exports = {
     return db(table).select('*');
   },
 
-  async updateProfilePicture(id, filename) {
-    return db(table)
-      .where({ id })
-      .update({ profilePicture: filename })
-      .returning('*');
-  }
+  async updateProfilePicture(id, base64Image) {
+      const fileName = await saveProfilePicture(base64Image, id);
+      return db(table)
+        .where({ id })
+        .update({ profilePicture: fileName })
+        .returning('*');
+    },
 };
+
+async function saveProfilePicture(base64Image, userId) {
+  const buffer = Buffer.from(base64Image, 'base64');
+  const fileName = `${userId}_profile_picture_${Date.now()}.png`;
+  const filePath = path.join(__dirname, '../uploads', fileName);
+
+  const uploadsDir = path.join(__dirname, '../uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+  }
+
+  fs.writeFileSync(filePath, buffer);
+  return fileName;
+}

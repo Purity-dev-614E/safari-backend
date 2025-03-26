@@ -57,4 +57,39 @@ router.post('/login', async (req, res) => {
   res.status(200).json({ session: data.session, user: data.user });
 });
 
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
+
+  const { data, error } = await supabase.auth.api.resetPasswordForEmail(email);
+
+  if (error) {
+    console.error('Forgot Password Error:', error);
+    return res.status(400).json({ error: error.message });
+  }
+
+  res.status(200).json({ message: 'Password recovery email sent.' });
+});
+
+// Refresh Token
+router.post('/refresh-token', async (req, res) => {
+  const { refresh_token } = req.body;
+
+  if (!refresh_token) {
+    return res.status(400).json({ error: 'Refresh token is required.' });
+  }
+
+  const { data, error } = await supabase.auth.api.refreshAccessToken(refresh_token);
+
+  if (error) {
+    console.error('Refresh Token Error:', error);
+    return res.status(400).json({ error: error.message });
+  }
+
+  res.status(200).json({ session: data });
+});
+
 module.exports = router;

@@ -26,7 +26,7 @@ module.exports = {
     return userModel.getAll();
   },
 
-  async updateProfilePicture(){
-    return userModel.updateProfilePicture
+  async updateProfilePicture(id, base64Image) {
+    return userModel.updateProfilePicture(id, base64Image);
   }
 };
