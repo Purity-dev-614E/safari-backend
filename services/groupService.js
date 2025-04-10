@@ -77,5 +77,9 @@ module.exports = {
       console.error('Error fetching admin groups:', error);
       throw new Error('Failed to fetch admin groups');
     }
+  },
+
+  async getGroupByUserId(userId) {
+    return groupModel.getGroupByUserId(userId);
   }
 };

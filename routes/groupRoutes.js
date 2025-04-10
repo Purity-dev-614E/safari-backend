@@ -22,6 +22,9 @@ router.delete('/:id/members/:userId', groupController.removeGroupMember);
 
 router.get('/admin/:userId/groups', groupController.getAdminGroups); // Ensure this matches the frontend
 
+// Get groups by user ID
+router.get('/user/:userId', groupController.getGroupsByUserId);
+
 // Assign admin to group
 router.post('/assign-admin', groupController.assignAdminToGroup);
 

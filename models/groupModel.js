@@ -126,5 +126,18 @@ module.exports = {
       console.error('Error fetching group demographics:', error);
       throw new Error('Failed to fetch group demographics');
     }
+  },
+
+  async getGroupByUserId(userId) {
+    try {
+      const groups = await knex('users_groups')
+        .join('groups', 'users_groups.group_id', 'groups.id')
+        .where('users_groups.user_id', userId)
+        .select('groups.*');
+      return groups;
+    } catch (error) {
+      console.error('Error fetching groups by user ID:', error);
+      throw new Error('Failed to fetch groups by user ID');
+    }
   }
 };
