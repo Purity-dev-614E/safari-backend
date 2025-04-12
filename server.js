@@ -10,7 +10,8 @@ const userRoutes = require('./routes/userRoutes');
 const groupRoutes = require('./routes/groupRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
-const authRoutes = require('./routes/authRoutes'); // Add this line
+const authRoutes = require('./routes/authRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 // Create Express app
 const app = express();
@@ -26,11 +27,12 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-app.use('/api/auth', authRoutes); // Add this line
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Default route
 app.get('/', (req, res) => {
