@@ -678,7 +678,7 @@ module.exports = {
       
       // Get all attendance records
       const attendanceRecords = await db('attendance')
-        .select('user_id', 'event_id', 'present', 'created_at')
+        .select('user_id', 'event_id', 'present', 'attendance.created_at')
         .join('events', 'attendance.event_id', 'events.id')
         .orderBy('events.date');
       
