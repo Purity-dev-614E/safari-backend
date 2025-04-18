@@ -5,7 +5,11 @@ module.exports = {
   async getGroupDemographics(req, res) {
     try {
       const { groupId } = req.params;
-      const demographics = await analyticsService.getGroupDemographics(groupId);
+      const demographics = await analyticsService.getGroupDemographics(
+        groupId, 
+        req.userRegionId, 
+        req.bypassRegionCheck
+      );
       res.status(200).json(demographics);
     } catch (error) {
       console.error('Error in getGroupDemographics controller:', error);
@@ -16,7 +20,11 @@ module.exports = {
   async getGroupAttendanceStats(req, res) {
     try {
       const { groupId } = req.params;
-      const stats = await analyticsService.getGroupAttendanceStats(groupId);
+      const stats = await analyticsService.getGroupAttendanceStats(
+        groupId,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getGroupAttendanceStats controller:', error);
@@ -27,7 +35,11 @@ module.exports = {
   async getGroupGrowthAnalytics(req, res) {
     try {
       const { groupId } = req.params;
-      const analytics = await analyticsService.getGroupGrowthAnalytics(groupId);
+      const analytics = await analyticsService.getGroupGrowthAnalytics(
+        groupId,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(analytics);
     } catch (error) {
       console.error('Error in getGroupGrowthAnalytics controller:', error);
@@ -41,7 +53,11 @@ module.exports = {
       if (!groupIds || !Array.isArray(groupIds) || groupIds.length === 0) {
         return res.status(400).json({ error: 'Group IDs array is required' });
       }
-      const comparison = await analyticsService.compareGroups(groupIds);
+      const comparison = await analyticsService.compareGroups(
+        groupIds,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(comparison);
     } catch (error) {
       console.error('Error in compareGroups controller:', error);
@@ -74,7 +90,11 @@ module.exports = {
   // Attendance Analytics
   async getAttendanceByWeek(req, res) {
     try {
-      const stats = await analyticsService.getAttendanceByPeriod('week');
+      const stats = await analyticsService.getAttendanceByPeriod(
+        'week',
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getAttendanceByWeek controller:', error);
@@ -84,7 +104,11 @@ module.exports = {
   
   async getAttendanceByMonth(req, res) {
     try {
-      const stats = await analyticsService.getAttendanceByPeriod('month');
+      const stats = await analyticsService.getAttendanceByPeriod(
+        'month',
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getAttendanceByMonth controller:', error);
@@ -94,7 +118,11 @@ module.exports = {
   
   async getAttendanceByYear(req, res) {
     try {
-      const stats = await analyticsService.getAttendanceByPeriod('year');
+      const stats = await analyticsService.getAttendanceByPeriod(
+        'year',
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getAttendanceByYear controller:', error);
@@ -108,7 +136,11 @@ module.exports = {
       if (!period || !['week', 'month', 'year'].includes(period)) {
         return res.status(400).json({ error: 'Valid period (week, month, year) is required' });
       }
-      const stats = await analyticsService.getAttendanceByPeriod(period);
+      const stats = await analyticsService.getAttendanceByPeriod(
+        period,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getAttendanceByPeriod controller:', error);
@@ -122,7 +154,11 @@ module.exports = {
       if (!period || !['week', 'month', 'year'].includes(period)) {
         return res.status(400).json({ error: 'Valid period (week, month, year) is required' });
       }
-      const stats = await analyticsService.getOverallAttendanceByPeriod(period);
+      const stats = await analyticsService.getOverallAttendanceByPeriod(
+        period,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getOverallAttendanceByPeriod controller:', error);
@@ -133,7 +169,11 @@ module.exports = {
   async getUserAttendanceTrends(req, res) {
     try {
       const { userId } = req.params;
-      const trends = await analyticsService.getUserAttendanceTrends(userId);
+      const trends = await analyticsService.getUserAttendanceTrends(
+        userId,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(trends);
     } catch (error) {
       console.error('Error in getUserAttendanceTrends controller:', error);
@@ -167,7 +207,11 @@ module.exports = {
   async getEventParticipationStats(req, res) {
     try {
       const { eventId } = req.params;
-      const stats = await analyticsService.getEventParticipationStats(eventId);
+      const stats = await analyticsService.getEventParticipationStats(
+        eventId,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getEventParticipationStats controller:', error);
@@ -181,7 +225,11 @@ module.exports = {
       if (!eventIds || !Array.isArray(eventIds) || eventIds.length === 0) {
         return res.status(400).json({ error: 'Event IDs array is required' });
       }
-      const comparison = await analyticsService.compareEventAttendance(eventIds);
+      const comparison = await analyticsService.compareEventAttendance(
+        eventIds,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
       res.status(200).json(comparison);
     } catch (error) {
       console.error('Error in compareEventAttendance controller:', error);

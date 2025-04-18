@@ -21,10 +21,17 @@ module.exports = {
     }
   },
 
-  async getGroupByName(name) {
+  async getGroupByName(name, regionId) {
     try {
-      const group = await knex('groups').where({ name }).first();
-      return group;
+      // If regionId is provided, search for group with name in that region
+      if (regionId) {
+        const group = await knex('groups').where({ name, region_id: regionId }).first();
+        return group;
+      } else {
+        // Otherwise, just search by name (for backward compatibility)
+        const group = await knex('groups').where({ name }).first();
+        return group;
+      }
     } catch (error) {
       console.error('Error fetching group by name:', error);
       throw new Error('Failed to fetch group by name');
@@ -61,6 +68,16 @@ module.exports = {
     }
   },
 
+  async getAllByRegion(regionId) {
+    try {
+      const groups = await knex('groups').where({ region_id: regionId }).select('*');
+      return groups;
+    } catch (error) {
+      console.error('Error fetching groups by region:', error);
+      throw new Error('Failed to fetch groups by region');
+    }
+  },
+
   async getGroupMembers(groupId) {
     try {
       const members = await knex('users_groups')
@@ -76,11 +93,19 @@ module.exports = {
 
   async addGroupMember(groupId, userId) {
     try {
+      // Check if user and group are in the same region
+      const user = await knex('users').where({ id: userId }).first();
+      const group = await knex('groups').where({ id: groupId }).first();
+      
+      if (user.region_id !== group.region_id && user.role !== 'super admin') {
+        throw new Error('Cannot add user to a group in a different region');
+      }
+      
       const result = await knex('users_groups').insert({ group_id: groupId, user_id: userId }).returning('*');
       return result;
     } catch (error) {
       console.error('Error adding group member:', error);
-      throw new Error('Failed to add group member');
+      throw new Error('Failed to add group member: ' + error.message);
     }
   },
 
@@ -95,10 +120,18 @@ module.exports = {
 
   async assignAdminToGroup(groupId, userId) {
     try {
+      // Check if user and group are in the same region
+      const user = await knex('users').where({ id: userId }).first();
+      const group = await knex('groups').where({ id: groupId }).first();
+      
+      if (user.region_id !== group.region_id && user.role !== 'super admin') {
+        throw new Error('Cannot assign admin from a different region');
+      }
+      
       await knex('groups').where({ id: groupId }).update({ group_admin_id: userId });
     } catch (error) {
       console.error('Error assigning admin to group:', error);
-      throw new Error('Failed to assign admin to group');
+      throw new Error('Failed to assign admin to group: ' + error.message);
     }
   },
 
@@ -138,6 +171,19 @@ module.exports = {
     } catch (error) {
       console.error('Error fetching groups by user ID:', error);
       throw new Error('Failed to fetch groups by user ID');
+    }
+  },
+
+  async updateGroupRegion(id, regionId) {
+    try {
+      const result = await knex('groups')
+        .where({ id })
+        .update({ region_id: regionId })
+        .returning('*');
+      return result;
+    } catch (error) {
+      console.error('Error updating group region:', error);
+      throw new Error('Failed to update group region');
     }
   }
 };

@@ -12,6 +12,7 @@ const eventRoutes = require('./routes/eventRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const authRoutes = require('./routes/authRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const regionRoutes = require('./routes/regionRoutes');
 
 // Create Express app
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/regions', regionRoutes);
 
 // Default route
 app.get('/', (req, res) => {

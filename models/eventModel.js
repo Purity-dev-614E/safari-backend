@@ -25,5 +25,26 @@ module.exports = {
   
   async getByGroup(groupId) {
     return db(table).where({ group_id: groupId }).select('*');
+  },
+  
+  async getByRegion(regionId) {
+    // Join with groups to filter events by region
+    return db(table)
+      .join('groups', 'events.group_id', 'groups.id')
+      .where('groups.region_id', regionId)
+      .select('events.*');
+  },
+  
+  async getAllWithRegionInfo() {
+    // Join with groups to include region information
+    return db(table)
+      .join('groups', 'events.group_id', 'groups.id')
+      .leftJoin('regions', 'groups.region_id', 'regions.id')
+      .select(
+        'events.*',
+        'groups.name as group_name',
+        'groups.region_id',
+        'regions.name as region_name'
+      );
   }
 };

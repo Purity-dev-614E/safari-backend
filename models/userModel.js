@@ -34,13 +34,32 @@ module.exports = {
     return db(table).select('*');
   },
 
- async updateProfilePicture(id, base64Image) {
-  const fileName = await saveProfilePicture(base64Image, id);
-  return db(table)
-    .where({ id })
-    .update({ profile_picture: fileName })
-    .returning('*');
- }
+  async getAllByRegion(regionId) {
+    return db(table).where({ region_id: regionId }).select('*');
+  },
+
+  async updateProfilePicture(id, base64Image) {
+    const fileName = await saveProfilePicture(base64Image, id);
+    return db(table)
+      .where({ id })
+      .update({ profile_picture: fileName })
+      .returning('*');
+  },
+
+  async updateUserRegion(id, regionId) {
+    return db(table)
+      .where({ id })
+      .update({ region_id: regionId })
+      .returning('*');
+  },
+
+  async getUsersByRole(role) {
+    return db(table).where({ role }).select('*');
+  },
+
+  async getRegionManagers() {
+    return db(table).where({ role: 'region_manager' }).select('*');
+  }
 };
 
 async function saveProfilePicture(base64Image, userId) {
