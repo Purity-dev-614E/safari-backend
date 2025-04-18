@@ -18,20 +18,20 @@ module.exports = {
         .groupBy('users.gender');
       
       // Get age distribution
-      const ageDistribution = await db('users_groups')
-        .join('users', 'users_groups.user_id', 'users.id')
-        .where('users_groups.group_id', groupId)
-        .select(
-          db.raw('CASE ' +
-            'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) < 18 THEN \'Under 18\' ' +
-            'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 18 AND 25 THEN \'18-25\' ' +
-            'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 26 AND 35 THEN \'26-35\' ' +
-            'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 36 AND 50 THEN \'36-50\' ' +
-            'ELSE \'Over 50\' ' +
-            'END as age_group')
-        )
-        .count('users.id as count')
-        .groupBy('age_group');
+      // const ageDistribution = await db('users_groups')
+      //   .join('users', 'users_groups.user_id', 'users.id')
+      //   .where('users_groups.group_id', groupId)
+      //   .select(
+      //     db.raw('CASE ' +
+      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) < 18 THEN \'Under 18\' ' +
+      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 18 AND 25 THEN \'18-25\' ' +
+      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 26 AND 35 THEN \'26-35\' ' +
+      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 36 AND 50 THEN \'36-50\' ' +
+      //       'ELSE \'Over 50\' ' +
+      //       'END as age_group')
+      //   )
+      //   .count('users.id as count')
+      //   .groupBy('age_group');
       
       // Get role distribution
       const roleDistribution = await db('users_groups')
@@ -43,7 +43,7 @@ module.exports = {
       
       return {
         genderDistribution,
-        ageDistribution,
+        // ageDistribution,
         roleDistribution
       };
     } catch (error) {
