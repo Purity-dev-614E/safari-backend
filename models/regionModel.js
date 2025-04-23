@@ -1,13 +1,37 @@
 const knex = require('../db');
 
+// Define the predefined regions
+const PREDEFINED_REGIONS = [
+  'KILIMANI',
+  'LANGATA',
+  'EASTERN',
+  'KIAMBU',
+  'WESTLANDS',
+  'DIASPORA',
+  'INTERCOUNTY'
+];
+
 module.exports = {
+  // Get the list of predefined regions
+  getPredefinedRegions() {
+    return PREDEFINED_REGIONS;
+  },
+  
   async createRegion(regionData) {
     try {
+      // Ensure the region name is one of the predefined regions
+      if (!regionData.name || !PREDEFINED_REGIONS.includes(regionData.name.toUpperCase())) {
+        throw new Error(`Region name must be one of: ${PREDEFINED_REGIONS.join(', ')}`);
+      }
+      
+      // Convert to uppercase to ensure consistency
+      regionData.name = regionData.name.toUpperCase();
+      
       const result = await knex('regions').insert(regionData).returning('*');
       return result[0];
     } catch (error) {
       console.error('Error creating region:', error);
-      throw new Error('Failed to create region');
+      throw new Error(error.message || 'Failed to create region');
     }
   },
 
@@ -33,11 +57,21 @@ module.exports = {
 
   async updateRegion(id, regionData) {
     try {
+      // If name is being updated, ensure it's one of the predefined regions
+      if (regionData.name) {
+        if (!PREDEFINED_REGIONS.includes(regionData.name.toUpperCase())) {
+          throw new Error(`Region name must be one of: ${PREDEFINED_REGIONS.join(', ')}`);
+        }
+        
+        // Convert to uppercase to ensure consistency
+        regionData.name = regionData.name.toUpperCase();
+      }
+      
       const result = await knex('regions').where({ id }).update(regionData).returning('*');
       return result[0];
     } catch (error) {
       console.error('Error updating region:', error);
-      throw new Error('Failed to update region');
+      throw new Error(error.message || 'Failed to update region');
     }
   },
 

@@ -64,6 +64,7 @@ module.exports = {
   async getAllRegions(req, res) {
     try {
       const regions = await regionService.getAllRegions();
+      console.log (regions);
       res.status(200).json(regions);
     } catch (error) {
       console.error('Error fetching regions:', error);
