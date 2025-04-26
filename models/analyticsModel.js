@@ -17,21 +17,6 @@ module.exports = {
         .count('users.id as count')
         .groupBy('users.gender');
       
-      // Get age distribution
-      // const ageDistribution = await db('users_groups')
-      //   .join('users', 'users_groups.user_id', 'users.id')
-      //   .where('users_groups.group_id', groupId)
-      //   .select(
-      //     db.raw('CASE ' +
-      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) < 18 THEN \'Under 18\' ' +
-      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 18 AND 25 THEN \'18-25\' ' +
-      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 26 AND 35 THEN \'26-35\' ' +
-      //       'WHEN EXTRACT(YEAR FROM age(users.date_of_birth)) BETWEEN 36 AND 50 THEN \'36-50\' ' +
-      //       'ELSE \'Over 50\' ' +
-      //       'END as age_group')
-      //   )
-      //   .count('users.id as count')
-      //   .groupBy('age_group');
       
       // Get role distribution
       const roleDistribution = await db('users_groups')
@@ -331,6 +316,7 @@ module.exports = {
     }
   },
   
+  ////Super admin
   async getOverallAttendanceByPeriod(period) {
     let startDate;
     const now = new Date();
@@ -606,7 +592,7 @@ module.exports = {
   },
   
   // Member Analytics
-  async getMemberParticipationStats() {
+  async getMemberParticipationStats(startDate, endDate) {
     try {
       // Get all users
       const users = await db('users')
@@ -621,16 +607,34 @@ module.exports = {
         
         const groupIds = userGroups.map(g => g.group_id);
         
-        const possibleEvents = await db('events')
-          .whereIn('group_id', groupIds)
-          .count('id as count')
-          .first();
+        // Build query for possible events
+        let eventsQuery = db('events').whereIn('group_id', groupIds);
         
+        // Add date filters if provided
+        if (startDate) {
+          eventsQuery = eventsQuery.where('date', '>=', new Date(startDate));
+        }
+        if (endDate) {
+          eventsQuery = eventsQuery.where('date', '<=', new Date(endDate));
+        }
+        
+        const possibleEvents = await eventsQuery.count('id as count').first();
         const totalPossible = parseInt(possibleEvents.count);
+        
+        // Get event IDs for attendance query
+        let eventIdsQuery = db('events').whereIn('group_id', groupIds);
+        if (startDate) {
+          eventIdsQuery = eventIdsQuery.where('date', '>=', new Date(startDate));
+        }
+        if (endDate) {
+          eventIdsQuery = eventIdsQuery.where('date', '<=', new Date(endDate));
+        }
+        const eventIds = await eventIdsQuery.select('id');
         
         // Get actual attendance
         const attendance = await db('attendance')
           .where('user_id', user.id)
+          .whereIn('event_id', eventIds.map(e => e.id))
           .select('present')
           .count('id as count')
           .groupBy('present');
@@ -667,6 +671,97 @@ module.exports = {
     } catch (error) {
       console.error('Error fetching member participation stats:', error);
       throw new Error('Failed to fetch member participation stats');
+    }
+  },
+  
+  async getMemberParticipationStatsForRegion(regionId, startDate, endDate) {
+    try {
+      // Get all users in this region
+      const users = await db('users')
+        .where('region_id', regionId)
+        .select('id', 'full_name', 'email');
+      
+      // Get all groups in this region
+      const groups = await db('groups')
+        .where('region_id', regionId)
+        .select('id');
+      
+      const groupIds = groups.map(g => g.id);
+      
+      // Get participation stats for each user
+      const participationStats = await Promise.all(users.map(async (user) => {
+        // Get user's groups in this region
+        const userGroups = await db('users_groups')
+          .where('user_id', user.id)
+          .whereIn('group_id', groupIds)
+          .select('group_id');
+        
+        const userGroupIds = userGroups.map(g => g.group_id);
+        
+        // Build query for possible events
+        let eventsQuery = db('events').whereIn('group_id', userGroupIds);
+        
+        // Add date filters if provided
+        if (startDate) {
+          eventsQuery = eventsQuery.where('date', '>=', new Date(startDate));
+        }
+        if (endDate) {
+          eventsQuery = eventsQuery.where('date', '<=', new Date(endDate));
+        }
+        
+        const possibleEvents = await eventsQuery.count('id as count').first();
+        const totalPossible = parseInt(possibleEvents.count);
+        
+        // Get event IDs for attendance query
+        let eventIdsQuery = db('events').whereIn('group_id', userGroupIds);
+        if (startDate) {
+          eventIdsQuery = eventIdsQuery.where('date', '>=', new Date(startDate));
+        }
+        if (endDate) {
+          eventIdsQuery = eventIdsQuery.where('date', '<=', new Date(endDate));
+        }
+        const eventIds = await eventIdsQuery.select('id');
+        
+        // Get actual attendance
+        const attendance = await db('attendance')
+          .where('user_id', user.id)
+          .whereIn('event_id', eventIds.map(e => e.id))
+          .select('present')
+          .count('id as count')
+          .groupBy('present');
+        
+        let attendedCount = 0;
+        let missedCount = 0;
+        
+        attendance.forEach(record => {
+          if (record.present) {
+            attendedCount = parseInt(record.count);
+          } else {
+            missedCount = parseInt(record.count);
+          }
+        });
+        
+        // Calculate participation rate
+        const participationRate = totalPossible > 0 ? (attendedCount / totalPossible) * 100 : 0;
+        
+        return {
+          userId: user.id,
+          userName: user.full_name,
+          userEmail: user.email,
+          totalPossible,
+          attendedCount,
+          missedCount,
+          participationRate
+        };
+      }));
+      
+      // Sort by participation rate (descending)
+      participationStats.sort((a, b) => b.participationRate - a.participationRate);
+      
+      return participationStats;
+    } catch (error) {
+      console.error('Error fetching member participation stats for region:', error);
+      throw new Error('Failed to fetch member participation stats for region');
     }
   },
   
@@ -766,6 +861,90 @@ module.exports = {
     } catch (error) {
       console.error('Error fetching member retention stats:', error);
       throw new Error('Failed to fetch member retention stats');
+    }
+  },
+  
+  async getMemberActivityStatus() {
+    try {
+      // Get current date and first day of current month
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      // Get all users
+      const users = await db('users')
+        .select('id', 'full_name', 'email');
+      
+      // Get all events for the current month
+      const currentMonthEvents = await db('events')
+        .where('date', '>=', firstDayOfMonth)
+        .where('date', '<=', now)
+        .select('id', 'group_id', 'date');
+      
+      // Get activity status for each user
+      const activityStats = await Promise.all(users.map(async (user) => {
+        // Get user's groups
+        const userGroups = await db('users_groups')
+          .where('user_id', user.id)
+          .select('group_id');
+        
+        const groupIds = userGroups.map(g => g.group_id);
+        
+        // Get events for user's groups in the current month
+        const userGroupEvents = currentMonthEvents.filter(event => 
+          groupIds.includes(event.group_id)
+        );
+        
+        const totalPossibleEvents = userGroupEvents.length;
+        
+        // Get user's attendance for these events
+        let attendedEvents = 0;
+        
+        if (totalPossibleEvents > 0) {
+          const attendance = await db('attendance')
+            .where('user_id', user.id)
+            .whereIn('event_id', userGroupEvents.map(e => e.id))
+            .where('present', true)
+            .count('id as count')
+            .first();
+          
+          attendedEvents = parseInt(attendance.count);
+        }
+        
+        // Calculate attendance rate
+        const attendanceRate = totalPossibleEvents > 0 
+          ? (attendedEvents / totalPossibleEvents) * 100 
+          : 0;
+        
+        // Determine activity status based on 75% (3/4) threshold
+        const isActive = attendanceRate >= 75;
+        
+        return {
+          userId: user.id,
+          userName: user.full_name,
+          userEmail: user.email,
+          totalPossibleEvents,
+          attendedEvents,
+          attendanceRate,
+          activityStatus: isActive ? 'Active' : 'Inactive',
+          activityThreshold: '75%'
+        };
+      }));
+      
+      // Group by activity status
+      const activeMembers = activityStats.filter(user => user.activityStatus === 'Active');
+      const inactiveMembers = activityStats.filter(user => user.activityStatus === 'Inactive');
+      
+      return {
+        userStats: activityStats,
+        statusSummary: {
+          Active: activeMembers.length,
+          Inactive: inactiveMembers.length,
+          Total: users.length
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching member activity status:', error);
+      throw new Error('Failed to fetch member activity status');
     }
   },
   

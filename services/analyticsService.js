@@ -210,13 +210,13 @@ module.exports = {
   },
   
   // Member Analytics
-  async getMemberParticipationStats(userRegionId, bypassRegionCheck) {
+  async getMemberParticipationStats(userRegionId, bypassRegionCheck, startDate, endDate) {
     if (bypassRegionCheck) {
-      return analyticsModel.getMemberParticipationStats();
+      return analyticsModel.getMemberParticipationStats(startDate, endDate);
     }
     
-    // This would need to be implemented in regionAnalyticsModel
-    throw new Error('Region-specific member participation stats not implemented');
+    // For region-specific users, get participation stats only for their region
+    return analyticsModel.getMemberParticipationStatsForRegion(userRegionId, startDate, endDate);
   },
   
   async getMemberRetentionStats(userRegionId, bypassRegionCheck) {
@@ -226,6 +226,15 @@ module.exports = {
     
     // This would need to be implemented in regionAnalyticsModel
     throw new Error('Region-specific member retention stats not implemented');
+  },
+  
+  async getMemberActivityStatus(userRegionId, bypassRegionCheck) {
+    if (bypassRegionCheck) {
+      return analyticsModel.getMemberActivityStatus();
+    }
+    
+    // For region-specific users, get activity status only for their region
+    return regionAnalyticsModel.getMemberActivityStatusForRegion(userRegionId);
   },
   
   async getMemberEngagementScores(userRegionId, bypassRegionCheck) {

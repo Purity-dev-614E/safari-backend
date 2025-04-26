@@ -14,6 +14,11 @@ const authRoutes = require('./routes/authRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const regionRoutes = require('./routes/regionRoutes');
 
+// Import role-specific analytics routes
+const superAdminAnalyticsRoutes = require('./routes/superAdminAnalyticsRoutes');
+const regionalManagerAnalyticsRoutes = require('./routes/regionalManagerAnalyticsRoutes');
+const adminAnalyticsRoutes = require('./routes/adminAnalyticsRoutes');
+
 // Create Express app
 const app = express();
 
@@ -33,8 +38,13 @@ app.use('/api/users', userRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/attendance', attendanceRoutes);
-app.use('/api/analytics', analyticsRoutes);
+app.use('/api/analytics', analyticsRoutes); // Keep for backward compatibility
 app.use('/api/regions', regionRoutes);
+
+// Role-specific analytics routes
+app.use('/api/super-admin/analytics', superAdminAnalyticsRoutes);
+app.use('/api/regional-manager/analytics', regionalManagerAnalyticsRoutes);
+app.use('/api/admin/analytics', adminAnalyticsRoutes);
 
 // Default route
 app.get('/', (req, res) => {

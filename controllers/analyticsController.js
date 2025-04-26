@@ -270,7 +270,13 @@ module.exports = {
   // Member Analytics
   async getMemberParticipationStats(req, res) {
     try {
-      const stats = await analyticsService.getMemberParticipationStats();
+      const { start_date, end_date } = req.query;
+      const stats = await analyticsService.getMemberParticipationStats(
+        req.userRegionId,
+        req.bypassRegionCheck,
+        start_date,
+        end_date
+      );
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getMemberParticipationStats controller:', error);
@@ -285,6 +291,19 @@ module.exports = {
     } catch (error) {
       console.error('Error in getMemberRetentionStats controller:', error);
       res.status(500).json({ error: error.message || 'Failed to fetch member retention stats' });
+    }
+  },
+  
+  async getMemberActivityStatus(req, res) {
+    try {
+      const stats = await analyticsService.getMemberActivityStatus(
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
+      res.status(200).json(stats);
+    } catch (error) {
+      console.error('Error in getMemberActivityStatus controller:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch member activity status' });
     }
   },
   
