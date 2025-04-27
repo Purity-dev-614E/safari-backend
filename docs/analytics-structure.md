@@ -27,14 +27,12 @@ Super admins have unrestricted access to all analytics data across the entire sy
 #### Attendance Analytics
 - `GET /attendance/period/:period` - Get attendance statistics for a specific period (week, month, year)(3)
 - `GET /attendance/overall/:period` - Get overall attendance statistics for a specific period(4)
-- `GET /attendance/user/:userId` - Get attendance trends for a specific user
 
 #### Event Analytics
 - `GET /events/:eventId/participation` - Get participation statistics for an event(2)
 - `POST /events/compare-attendance` - Compare attendance across multiple events(8)
 
 #### Member Analytics
-- `GET /members/participation` - Get member participation statistics
 - `GET /members/activity-status` - Get activity status for all members
 
 #### Dashboard Analytics
