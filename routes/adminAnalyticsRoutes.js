@@ -2,11 +2,10 @@ const express = require('express');
 const router = express.Router();
 const adminAnalyticsController = require('../controllers/adminAnalyticsController');
 const { authenticate } = require('../auth');
-const { checkRole } = require('../middleware/regionMiddleware');
+
 
 // Apply authentication and role check middleware
 router.use(authenticate);
-router.use(checkRole(['admin']));
 
 // Group Analytics - Admin can only access their own group
 router.get('/groups/:groupId/demographics', adminAnalyticsController.getGroupDemographics);
