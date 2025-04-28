@@ -5,8 +5,10 @@ const attendanceService = require('../services/attendanceService');
 module.exports = {
   async createGroup(req, res) {
     try {
+      console.log('Creating group with data:', req.body);
       const groupData = req.body;
       const result = await groupService.createGroup(groupData);
+      console.log('Group created successfully:', result[0]);
       res.status(201).json(result[0]);
     } catch (error) {
       console.error('Error creating group:', error);

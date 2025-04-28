@@ -4,7 +4,7 @@ const knex = require('../db');
 
 module.exports = {
   async createGroup(groupData) {
-    return groupModel.create(groupData);
+    return groupModel.createGroup(groupData);
   },
   
   async getGroupById(id) {
