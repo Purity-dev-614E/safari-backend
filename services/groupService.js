@@ -16,7 +16,7 @@ module.exports = {
   },
   
   async updateGroup(id, groupData) {
-    return groupModel.update(id, groupData);
+    return groupModel.updateGroup(id, groupData);
   },
   
   async deleteGroup(id) {
