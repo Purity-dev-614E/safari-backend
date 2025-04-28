@@ -4,24 +4,31 @@ const userService = require('../services/userService'); // Assuming you have a u
 module.exports = {
   async createEvent(req, res) {
     try {
+      console.log('Creating event...');
       const { groupId } = req.params;
       const eventData = req.body;
       const userId = req.user.id; // Assuming req.user is set by the authenticate middleware
 
-      // Check if the user is an admin
-      const user = await userService.getUserById(userId);
+      console.log('Received event data:', eventData);
+      console.log('User ID:', userId);
+      console.log('Group ID:', groupId);
 
       // Ensure the date is correctly formatted
       if (eventData.date) {
         const date = new Date(eventData.date);
         if (isNaN(date.getTime())) {
+          console.error('Invalid date format:', eventData.date);
           return res.status(400).json({ error: 'Invalid date format' });
         }
         eventData.date = date.toISOString().replace('T', ' ').replace('Z', '');
+        console.log('Formatted date:', eventData.date);
       }
 
       eventData.group_id = groupId;
+      console.log('Final event data to save:', eventData);
+
       const result = await eventService.createEvent(eventData);
+      console.log('Event created successfully:', result[0]);
       res.status(201).json(result[0]);
     } catch (error) {
       console.error('Error creating event:', error);
