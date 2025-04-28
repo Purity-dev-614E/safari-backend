@@ -105,18 +105,21 @@ module.exports = {
       const { id } = req.params; // Group ID
       const { userId } = req.body; // User ID from request body
 
+      console.log(`Adding member to group. Group ID: ${id}, User ID: ${userId}`);
+
       if (!userId) {
+        console.warn('User ID is missing in the request body');
         return res.status(400).json({ error: 'User ID is required' });
       }
 
       const result = await groupService.addGroupMember(id, userId);
+      console.log(`Member added successfully to group. Result: ${JSON.stringify(result[0])}`);
       res.status(201).json(result[0]);
     } catch (error) {
       console.error('Error adding group member:', error);
       res.status(500).json({ error: 'Failed to add group member' });
     }
   },
-  
   async removeGroupMember(req, res) {
     try {
       const { id, userId } = req.params;
