@@ -48,7 +48,7 @@ app.use('/api/admin/analytics', adminAnalyticsRoutes);
 
 // Default route
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the Church Management API for Safari App' });
+  res.json({ message: 'Welcome to the Church Management API for Church Connect' });
 });
 
 // 404 handler

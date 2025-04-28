@@ -6,7 +6,6 @@ const { checkRole } = require('../middleware/regionMiddleware');
 
 // Apply authentication and role check middleware
 router.use(authenticate);
-router.use(checkRole(['region_manager']));
 
 // Group Analytics
 router.get('/groups/:groupId/demographics', regionalManagerAnalyticsController.getGroupDemographics);
