@@ -14,13 +14,16 @@ module.exports = {
 
   async getRegionById(req, res) {
     try {
+      console.log('Fetching region by ID:', req.params.id);
       const { id } = req.params;
       const region = await regionService.getRegionById(id);
       
       if (!region) {
+        console.log('Region not found for ID:', id);
         return res.status(404).json({ error: 'Region not found' });
       }
       
+      console.log('Region fetched successfully:', region);
       res.status(200).json(region);
     } catch (error) {
       console.error('Error fetching region:', error);
