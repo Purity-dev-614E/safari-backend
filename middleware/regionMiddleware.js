@@ -35,7 +35,7 @@ const checkRegionAccess = async (req, res, next) => {
     }
     
     // For region managers, check if they're trying to access their own region
-    if (req.fullUser.role === 'region_manager') {
+    if (req.fullUser.role === 'regional manager') {
       const regionId = req.params.regionId || req.body.region_id;
       
       if (!regionId) {
