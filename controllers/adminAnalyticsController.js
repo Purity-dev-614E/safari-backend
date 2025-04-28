@@ -135,16 +135,12 @@ module.exports = {
   
   async getGroupMemberActivityStatus(req, res) {
     try {
+      console.log('getGroupMemberActivityStatus called with params:', req.params);
       const { groupId } = req.params;
-      const userId = req.fullUser.id;
       
-      // Check if the admin is part of this group
-      const isAdmin = await isGroupAdmin(userId, groupId);
-      if (!isAdmin) {
-        return res.status(403).json({ error: 'Access denied. You can only view groups you administer.' });
-      }
-      
+      console.log('Fetching group member activity status for group:', groupId);
       const stats = await adminAnalyticsModel.getGroupMemberActivityStatus(groupId);
+      console.log('Successfully fetched group member activity status:', stats);
       res.status(200).json(stats);
     } catch (error) {
       console.error('Error in getGroupMemberActivityStatus controller:', error);
