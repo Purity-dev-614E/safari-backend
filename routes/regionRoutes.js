@@ -12,9 +12,9 @@ router.put('/:id', checkRole(['super admin']), regionController.updateRegion);
 router.delete('/:id', checkRole(['super admin']), regionController.deleteRegion);
 
 // Routes accessible to super admins and region managers
-router.get('/:id', checkRole(['super admin', 'region_manager']), regionController.getRegionById);
-router.get('/:regionId/users', checkRole(['super admin', 'region_manager']), checkRegionAccess, regionController.getUsersByRegion);
-router.get('/:regionId/groups', checkRole(['super admin', 'region_manager']), checkRegionAccess, regionController.getGroupsByRegion);
+router.get('/:id', checkRole(['super admin', 'regional manager']), regionController.getRegionById);
+router.get('/:regionId/users', checkRole(['super admin', 'regional manager']), checkRegionAccess, regionController.getUsersByRegion);
+router.get('/:regionId/groups', checkRole(['super admin', 'regional manager']), checkRegionAccess, regionController.getGroupsByRegion);
 
 // Route accessible to all authenticated users for dropdown in frontend
 router.get('/', regionController.getAllRegions);
