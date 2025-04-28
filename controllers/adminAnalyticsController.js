@@ -148,12 +148,6 @@ module.exports = {
       const { groupId } = req.params;
       const userId = req.fullUser.id;
       
-      // Check if the admin is part of this group
-      const isAdmin = await isGroupAdmin(userId, groupId);
-      if (!isAdmin) {
-        return res.status(403).json({ error: 'Access denied. You can only view groups you administer.' });
-      }
-      
       const data = await analyticsModel.getGroupDashboardData(groupId);
       res.status(200).json(data);
     } catch (error) {
