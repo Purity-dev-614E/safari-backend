@@ -102,7 +102,8 @@ module.exports = {
       }
     
       const result = await userService.updateProfilePicture(id, image);
-    
+      console.log(result);
+
       if (!result || result.length === 0) {
       console.error(`Error: User with ID ${id} not found`);
       return res.status(404).json({ error: 'User not found' });
