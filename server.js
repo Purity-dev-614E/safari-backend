@@ -5,6 +5,9 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Import routes
 const userRoutes = require('./routes/userRoutes');
 const groupRoutes = require('./routes/groupRoutes');
