@@ -54,6 +54,11 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the Church Management API for Church Connect' });
 });
 
+app.get("/ping", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
