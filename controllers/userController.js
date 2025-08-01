@@ -61,6 +61,7 @@ module.exports = {
       res.status(200).json(result[0]);
     } catch (error) {
       console.error('Error updating user:', error);
+      console.error(`Error updating user with ID ${req.params.id}:`, error);
       res.status(500).json({ error: 'Failed to update user' });
     }
   },
