@@ -97,9 +97,9 @@ module.exports = {
       const user = await knex('users').where({ id: userId }).first();
       const group = await knex('groups').where({ id: groupId }).first();
       
-      if (user.region_id !== group.region_id && user.role !== 'super admin') {
-        throw new Error('Cannot add user to a group in a different region');
-      }
+      // if (user.region_id !== group.region_id && user.role !== 'super admin') {
+      //   throw new Error('Cannot add user to a group in a different region');
+      // }
       
       const result = await knex('users_groups').insert({ group_id: groupId, user_id: userId }).returning('*');
       return result;
