@@ -1,4 +1,5 @@
 const attendanceService = require('../services/attendanceService');
+const attendanceModel = require ('../models/attendanceModel')
 
 module.exports = {
   async createAttendance(req, res) {
@@ -99,5 +100,24 @@ module.exports = {
       console.error('Error fetching attendance status:', error);
       res.status(500).json({ error: 'Failed to fetch attendance status' });
     }
+  },
+
+  async getGroupAttendance(req, res) {
+  try {
+    const { groupId } = req.params;
+    if (!groupId) {
+      return res.status(400).json({ error: 'Group ID is required' });
+    }
+
+    const stats = await attendanceModel.getAttendancePercentage(groupId);
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error('Error fetching attendance:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
   }
 };

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 const db = require('../db');
 const { v4: uuidv4, validate: uuidValidate } = require('uuid');
 
@@ -91,6 +93,33 @@ module.exports = {
     return db(table)
       .where({ event_id: eventId, user_id: userId })
       .select('present')
-      .first(); // Get only one record
+      .first();
+  },
+
+  //get attendance
+  async getAttendancePercentage(groupId) {
+  const result = await knex('attendance')
+    .join('events', 'attendance.event_id', 'events.id')
+    .where('events.group_id', groupId)
+    .andWhere('attendance.present', true)
+    .countDistinct('attendance.user_id as presentCount')
+    .first();
+
+  const totalMembers = await knex('users_groups')
+    .where('group_id', groupId)
+    .countDistinct('user_id as memberCount')
+    .first();
+
+  const presentCount = parseInt(result.presentCount, 10) || 0;
+  const memberCount = parseInt(totalMembers.memberCount, 10) || 0;
+
+  const percentage = memberCount > 0 ? (presentCount / memberCount) * 100 : 0;
+
+  return {
+    presentCount,
+    memberCount,
+    percentage: percentage.toFixed(2),
+    };
   }
+
 };
