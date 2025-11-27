@@ -202,6 +202,34 @@ module.exports = {
       res.status(500).json({ error: error.message || 'Failed to fetch attendance by event type' });
     }
   },
+
+  async getAttendanceOverview(req, res) {
+    try {
+      const { period, scope = 'overall', regionId, groupId } = req.query;
+
+      if (!period) {
+        return res.status(400).json({ error: 'period query parameter is required' });
+      }
+
+      if (scope === 'group' && !groupId) {
+        return res.status(400).json({ error: 'groupId is required when scope is group' });
+      }
+
+      const scopeId = scope === 'group' ? groupId : scope === 'region' ? regionId : undefined;
+
+      const overview = await analyticsService.getAttendanceOverview(
+        period,
+        scope,
+        scopeId,
+        req.userRegionId,
+        req.bypassRegionCheck
+      );
+      res.status(200).json(overview);
+    } catch (error) {
+      console.error('Error in getAttendanceOverview controller:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch attendance overview' });
+    }
+  },
   
   // Event Analytics
   async getEventParticipationStats(req, res) {

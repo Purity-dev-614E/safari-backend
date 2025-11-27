@@ -19,6 +19,7 @@ router.get('/attendance/year', analyticsController.getAttendanceByYear);
 router.get('/attendance/period/:period',analyticsController.getAttendanceByPeriod);
 router.get('/attendance/overall/:period', analyticsController.getOverallAttendanceByPeriod);
 router.get('/attendance/user/:userId',analyticsController.getUserAttendanceTrends);
+router.get('/attendance/overview', analyticsController.getAttendanceOverview);
 
 
 // Event Analytics

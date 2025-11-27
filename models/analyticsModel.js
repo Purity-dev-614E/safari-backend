@@ -1,6 +1,144 @@
 const db = require('../db');
 const { v4: uuidv4, validate: uuidValidate } = require('uuid');
 
+const MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', { month: 'short' });
+const DAY_FORMATTER = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
+
+const ATTENDANCE_OVERVIEW_PERIODS = {
+  week: {
+    bucketCount: 7,
+    step: { days: 1 },
+    labelFormatter: (bucket) => DAY_FORMATTER.format(bucket.startDate),
+  },
+  month: {
+    bucketCount: 4,
+    step: { days: 7 },
+    labelFormatter: (_, index) => `Week ${index + 1}`,
+  },
+  quarter: {
+    bucketCount: 4,
+    step: { months: 1 },
+    labelFormatter: (bucket) => MONTH_FORMATTER.format(bucket.startDate),
+  },
+  year: {
+    bucketCount: 12,
+    step: { months: 1 },
+    labelFormatter: (bucket) => MONTH_FORMATTER.format(bucket.startDate),
+  },
+};
+
+function normalizeOverviewPeriod(period) {
+  const key = typeof period === 'string' ? period.trim().toLowerCase() : '';
+  return PERIOD_ALIASES[key] || key;
+}
+
+function buildAttendanceBuckets(config) {
+  const buckets = [];
+  let bucketEnd = new Date();
+
+  for (let i = 0; i < config.bucketCount; i++) {
+    const startDate = shiftDateBackward(bucketEnd, config.step);
+    buckets.unshift({
+      startDate,
+      endDate: new Date(bucketEnd),
+      eventCount: 0,
+      totalPossible: 0,
+      presentCount: 0,
+      attendanceRate: 0,
+    });
+    bucketEnd = new Date(startDate);
+  }
+
+  return buckets.map((bucket, index) => ({
+    ...bucket,
+    label: config.labelFormatter(bucket, index),
+  }));
+}
+
+function shiftDateBackward(date, step) {
+  const result = new Date(date);
+
+  if (step.years) {
+    result.setFullYear(result.getFullYear() - step.years);
+  }
+  if (step.months) {
+    result.setMonth(result.getMonth() - step.months);
+  }
+  if (step.weeks) {
+    result.setDate(result.getDate() - step.weeks * 7);
+  }
+  if (step.days) {
+    result.setDate(result.getDate() - step.days);
+  }
+
+  return result;
+}
+
+function findBucketForDate(buckets, rawDate) {
+  const date = rawDate instanceof Date ? rawDate : new Date(rawDate);
+
+  for (let i = 0; i < buckets.length; i++) {
+    const bucket = buckets[i];
+    const isLastBucket = i === buckets.length - 1;
+    const startsAfter = date >= bucket.startDate;
+    const endsBefore = isLastBucket ? date <= bucket.endDate : date < bucket.endDate;
+
+    if (startsAfter && endsBefore) {
+      return bucket;
+    }
+  }
+
+  return null;
+}
+
+function formatAttendanceOverviewResponse(scope, scopeId, period, buckets) {
+  const summary = buckets.reduce(
+    (acc, bucket) => {
+      acc.eventCount += bucket.eventCount;
+      acc.totalPossible += bucket.totalPossible;
+      acc.presentCount += bucket.presentCount;
+      return acc;
+    },
+    { eventCount: 0, totalPossible: 0, presentCount: 0 }
+  );
+
+  summary.attendanceRate = summary.totalPossible > 0
+    ? (summary.presentCount / summary.totalPossible) * 100
+    : 0;
+
+  return {
+    scope,
+    scopeId: scopeId || null,
+    period,
+    buckets: buckets.map(bucket => ({
+      label: bucket.label,
+      startDate: bucket.startDate.toISOString(),
+      endDate: bucket.endDate.toISOString(),
+      eventCount: bucket.eventCount,
+      totalPossible: bucket.totalPossible,
+      presentCount: bucket.presentCount,
+      attendanceRate: Number(bucket.attendanceRate.toFixed(2)),
+    })),
+    summary: {
+      eventCount: summary.eventCount,
+      totalPossible: summary.totalPossible,
+      presentCount: summary.presentCount,
+      attendanceRate: Number(summary.attendanceRate.toFixed(2)),
+    },
+  };
+}
+
+const PERIOD_ALIASES = {
+  weekly: 'week',
+  week: 'week',
+  monthly: 'month',
+  month: 'month',
+  quarterly: 'quarter',
+  quarter: 'quarter',
+  yearly: 'year',
+  year: 'year',
+};
+
 module.exports = {
   // Group Analytics
   async getGroupDemographics(groupId) {
@@ -38,62 +176,67 @@ module.exports = {
   },
   
   async getGroupAttendanceStats(groupId) {
-    if (!uuidValidate(groupId)) {
-      throw new Error('Invalid UUID format');
-    }
-    
-    try {
-      // Get all events for this group
-      const events = await db('events')
-        .where('group_id', groupId)
-        .select('id', 'title', 'date');
-      
-      // Get attendance for each event
-      const attendanceStats = await Promise.all(events.map(async (event) => {
-        const totalMembers = await db('users_groups')
-          .where('group_id', groupId)
-          .count('user_id as count')
-          .first();
-        
-        const presentMembers = await db('attendance')
-          .where('event_id', event.id)
-          .where('present', true)
-          .count('user_id as count')
-          .first();
-        
-        return {
-          eventId: event.id,
-          eventTitle: event.title,
-          eventDate: event.date,
-          totalMembers: parseInt(totalMembers.count),
-          presentMembers: parseInt(presentMembers.count),
-          attendanceRate: totalMembers.count > 0 
-            ? (parseInt(presentMembers.count) / parseInt(totalMembers.count)) * 100 
-            : 0
-        };
-      }));
-      
-      // Calculate overall attendance rate
-      const overallStats = attendanceStats.reduce((acc, curr) => {
-        acc.totalEvents++;
-        acc.totalMembers += curr.totalMembers;
-        acc.presentMembers += curr.presentMembers;
-        return acc;
-      }, { totalEvents: 0, totalMembers: 0, presentMembers: 0 });
-      
-      overallStats.attendanceRate = overallStats.totalMembers > 0 
-        ? (overallStats.presentMembers / overallStats.totalMembers) * 100 
-        : 0;
-      
+  if (!uuidValidate(groupId)) {
+    throw new Error('Invalid UUID format');
+  }
+
+  try {
+    // Fetch total group members ONCE
+    const totalMembersResult = await db('users_groups')
+      .where('group_id', groupId)
+      .count('user_id as count')
+      .first();
+
+    const totalMembers = Number(totalMembersResult.count);
+
+    // Fetch all events for this group
+    const events = await db('events')
+      .where('group_id', groupId)
+      .select('id', 'title', 'date');
+
+    // For each event, calculate attendance stats
+    const eventStats = await Promise.all(events.map(async (event) => {
+
+      // Count present members
+      const presentResult = await db('attendance')
+        .where('event_id', event.id)
+        .where('present', true)
+        .count('user_id as count')
+        .first();
+
+      const presentMembers = Number(presentResult.count);
+
       return {
-        eventStats: attendanceStats,
-        overallStats
+        eventId: event.id,
+        eventTitle: event.title,
+        eventDate: event.date,
+        totalMembers,
+        presentMembers,
+        attendanceRate: totalMembers > 0 
+          ? (presentMembers / totalMembers) * 100 
+          : 0
       };
-    } catch (error) {
-      console.error('Error fetching group attendance stats:', error);
-      throw new Error('Failed to fetch group attendance stats');
-    }
-  },
+    }));
+
+    // Compute overall statistics correctly
+    const totalPresent = eventStats.reduce((sum, e) => sum + e.presentMembers, 0);
+
+    const overallStats = {
+      totalEvents: events.length,
+      totalMembers,
+      totalPresentMembers: totalPresent,
+      averageAttendanceRate: events.length > 0
+        ? (totalPresent / (totalMembers * events.length)) * 100
+        : 0
+    };
+
+    return { eventStats, overallStats };
+
+  } catch (error) {
+    console.error("Error fetching group attendance stats:", error);
+    throw new Error("Failed to fetch group attendance stats");
+  }
+},
   
   async getGroupGrowthAnalytics(groupId) {
     if (!uuidValidate(groupId)) {
@@ -317,98 +460,126 @@ module.exports = {
   },
   
   ////Super admin
-  async getOverallAttendanceByPeriod(period) {
-    let startDate;
-    const now = new Date();
-    
-    switch (period) {
-      case 'week':
-        startDate = new Date(now.setDate(now.getDate() - 7));
-        break;
-      case 'month':
-        startDate = new Date(now.setMonth(now.getMonth() - 1));
-        break;
-      case 'year':
-        startDate = new Date(now.setFullYear(now.getFullYear() - 1));
-        break;
-      default:
-        throw new Error('Invalid period. Must be week, month, or year');
-    }
-    
-    try {
-      // Get all events in the period
-      const events = await db('events')
-        .where('date', '>=', startDate)
-        .select('id', 'group_id');
-      
-      // Get all groups
-      const groups = await db('groups')
-        .select('id', 'name');
-      
-      // Calculate attendance for each group
-      const groupStats = await Promise.all(groups.map(async (group) => {
-        // Get events for this group
-        const groupEvents = events.filter(e => e.group_id === group.id);
-        
-        if (groupEvents.length === 0) {
-          return {
-            groupId: group.id,
-            groupName: group.name,
-            eventCount: 0,
-            totalPossible: 0,
-            presentCount: 0,
-            attendanceRate: 0
-          };
-        }
-        
-        // Get total possible attendance
-        const totalPossible = await db('users_groups')
-          .where('group_id', group.id)
+ async getOverallAttendanceByPeriod(period) {
+  const now = new Date();
+  let startDate = new Date(now); // clone, DO NOT mutate original
+
+  // Calculate start date without mutating `now`
+  switch (period) {
+    case 'week':
+      startDate.setDate(startDate.getDate() - 7);
+      break;
+    case 'month':
+      startDate.setMonth(startDate.getMonth() - 1);
+      break;
+    case 'year':
+      startDate.setFullYear(startDate.getFullYear() - 1);
+      break;
+    default:
+      throw new Error('Invalid period. Must be week, month, or year');
+  }
+
+  try {
+    // Get all events in selected period
+    const events = await db('events')
+      .where('date', '>=', startDate)
+      .select('id', 'date');
+
+    // Get total possible attendance (all groups combined)
+    const groups = await db('groups').select('id');
+    const groupUserCounts = await Promise.all(
+      groups.map(async g =>
+        db('users_groups')
+          .where('group_id', g.id)
           .count('user_id as count')
-          .first();
-        
-        const totalPossibleAttendance = parseInt(totalPossible.count) * groupEvents.length;
-        
-        // Get actual attendance
-        const actualAttendance = await db('attendance')
-          .whereIn('event_id', groupEvents.map(e => e.id))
-          .where('present', true)
-          .count('id as count')
-          .first();
-        
-        const actual = parseInt(actualAttendance.count);
-        
-        return {
-          groupId: group.id,
-          groupName: group.name,
-          eventCount: groupEvents.length,
-          totalPossible: totalPossibleAttendance,
-          presentCount: actual,
-          attendanceRate: totalPossibleAttendance > 0 ? (actual / totalPossibleAttendance) * 100 : 0
-        };
-      }));
-      
-      // Calculate overall stats
-      const overallStats = groupStats.reduce((acc, curr) => {
-        acc.eventCount += curr.eventCount;
-        acc.totalPossible += curr.totalPossible;
-        acc.presentCount += curr.presentCount;
-        return acc;
-      }, { eventCount: 0, totalPossible: 0, presentCount: 0 });
-      
-      overallStats.attendanceRate = overallStats.totalPossible > 0 
-        ? (overallStats.presentCount / overallStats.totalPossible) * 100 
-        : 0;
-      
-      return {
-        groupStats,
-        overallStats
-      };
-    } catch (error) {
-      console.error('Error fetching overall attendance by period:', error);
-      throw new Error('Failed to fetch overall attendance by period');
-    }
-  },
+          .first()
+      )
+    );
+
+    const totalMembers = groupUserCounts.reduce((acc, row) => acc + parseInt(row.count), 0);
+    const totalPossibleAttendance = totalMembers * events.length;
+
+    // Get actual attendance
+    const actualAttendance = await db('attendance')
+      .whereIn('event_id', events.map(e => e.id))
+      .where('present', true)
+      .count('id as count')
+      .first();
+
+    const presentCount = parseInt(actualAttendance.count);
+    const attendanceRate = totalPossibleAttendance > 0
+      ? (presentCount / totalPossibleAttendance) * 100
+      : 0;
+
+    // WEEKLY BREAKDOWN
+    const weeklyMap = {};
+
+    events.forEach(event => {
+      const eventDate = new Date(event.date);
+      const week = `${eventDate.getFullYear()}-W${Math.ceil(eventDate.getDate() / 7)}`;
+
+      weeklyMap[week] = (weeklyMap[week] || { total: 0, present: 0 });
+      weeklyMap[week].total += totalMembers;
+    });
+
+    const weeklyAttendance = await db('attendance')
+      .whereIn('event_id', events.map(e => e.id))
+      .where('present', true)
+      .select('event_id');
+
+    weeklyAttendance.forEach(row => {
+      const evt = events.find(e => e.id === row.event_id);
+      const d = new Date(evt.date);
+      const week = `${d.getFullYear()}-W${Math.ceil(d.getDate() / 7)}`;
+      weeklyMap[week].present += 1;
+    });
+
+    const weeklyBreakdown = Object.entries(weeklyMap).map(([week, data]) => ({
+      week,
+      attendanceRate: data.total > 0 ? (data.present / data.total) * 100 : 0
+    }));
+
+    // MONTHLY BREAKDOWN
+    const monthlyMap = {};
+
+    events.forEach(event => {
+      const d = new Date(event.date);
+      const month = d.toLocaleString('default', { month: 'long' });
+
+      monthlyMap[month] = (monthlyMap[month] || { total: 0, present: 0 });
+      monthlyMap[month].total += totalMembers;
+    });
+
+    monthlyAttendance = weeklyAttendance; // reuse
+    monthlyAttendance.forEach(row => {
+      const evt = events.find(e => e.id === row.event_id);
+      const d = new Date(evt.date);
+      const month = d.toLocaleString('default', { month: 'long' });
+      monthlyMap[month].present += 1;
+    });
+
+    const monthlyBreakdown = Object.entries(monthlyMap).map(([month, data]) => ({
+      month,
+      attendanceRate: data.total > 0 ? (data.present / data.total) * 100 : 0
+    }));
+
+    return {
+      overallStats: {
+        eventCount: events.length,
+        totalPossible: totalPossibleAttendance,
+        presentCount,
+        attendanceRate
+      },
+      weeklyBreakdown,
+      monthlyBreakdown
+    };
+  } catch (err) {
+    console.error(err);
+    throw new Error('Failed to fetch attendance data');
+  }
+},
+
+
   
   async getUserAttendanceTrends(userId) {
     if (!uuidValidate(userId)) {
@@ -946,6 +1117,100 @@ module.exports = {
       console.error('Error fetching member activity status:', error);
       throw new Error('Failed to fetch member activity status');
     }
+  },
+
+  async getAttendanceOverview(period, { scope = 'overall', scopeId } = {}) {
+    const normalizedPeriod = normalizeOverviewPeriod(period);
+    const config = ATTENDANCE_OVERVIEW_PERIODS[normalizedPeriod];
+
+    if (!config) {
+      throw new Error('Invalid period. Supported options: week, month, quarter, year');
+    }
+
+    if (!['overall', 'region', 'group'].includes(scope)) {
+      throw new Error('Invalid scope. Supported options: overall, region, group');
+    }
+
+    if (scope === 'group' && !scopeId) {
+      throw new Error('groupId is required when scope is group');
+    }
+
+    if (scope === 'region' && !scopeId) {
+      throw new Error('regionId is required when scope is region');
+    }
+
+    const buckets = buildAttendanceBuckets(config);
+    const rangeStart = buckets[0].startDate;
+    const rangeEnd = buckets[buckets.length - 1].endDate;
+
+    let eventsQuery = db('events')
+      .select('events.id', 'events.group_id', 'events.date')
+      .where('events.date', '>=', rangeStart)
+      .andWhere('events.date', '<=', rangeEnd);
+
+    if (scope === 'group') {
+      eventsQuery = eventsQuery.where('events.group_id', scopeId);
+    } else if (scope === 'region') {
+      eventsQuery = eventsQuery
+        .join('groups', 'events.group_id', 'groups.id')
+        .where('groups.region_id', scopeId)
+        .select('events.id', 'events.group_id', 'events.date');
+    }
+
+    const events = await eventsQuery;
+
+    if (events.length === 0) {
+      return formatAttendanceOverviewResponse(scope, scopeId, normalizedPeriod, buckets);
+    }
+
+    const eventIds = events.map(event => event.id);
+    const groupIds = [...new Set(events.map(event => event.group_id))];
+
+    const attendanceRows = eventIds.length
+      ? await db('attendance')
+          .whereIn('event_id', eventIds)
+          .andWhere('present', true)
+          .select('event_id')
+          .count('id as presentCount')
+          .groupBy('event_id')
+      : [];
+
+    const attendanceMap = new Map(
+      attendanceRows.map(row => [row.event_id, parseInt(row.presentCount, 10)])
+    );
+
+    const memberRows = groupIds.length
+      ? await db('users_groups')
+          .whereIn('group_id', groupIds)
+          .select('group_id')
+          .count('user_id as memberCount')
+          .groupBy('group_id')
+      : [];
+
+    const memberMap = new Map(
+      memberRows.map(row => [row.group_id, parseInt(row.memberCount, 10)])
+    );
+
+    events.forEach(event => {
+      const bucket = findBucketForDate(buckets, event.date);
+      if (!bucket) {
+        return;
+      }
+
+      bucket.eventCount += 1;
+      const groupSize = memberMap.get(event.group_id) || 0;
+      bucket.totalPossible += groupSize;
+      const present = attendanceMap.get(event.id) || 0;
+      bucket.presentCount += present;
+    });
+
+    buckets.forEach(bucket => {
+      bucket.attendanceRate = bucket.totalPossible > 0
+        ? (bucket.presentCount / bucket.totalPossible) * 100
+        : 0;
+    });
+
+    return formatAttendanceOverviewResponse(scope, scopeId, normalizedPeriod, buckets);
   },
   
   // Dashboard Analytics
