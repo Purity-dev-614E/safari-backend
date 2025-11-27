@@ -1,15 +1,20 @@
 const attendanceService = require('../services/attendanceService');
 const attendanceModel = require ('../models/attendanceModel')
 
+const { normalizeAttendancePayload, validateAttendancePayload } = require('../utils/attendancePayloadUtils');
+
 module.exports = {
   async createAttendance(req, res) {
     try {
-      const attendanceData = req.body;
+      const attendanceData = normalizeAttendancePayload(req.body);
+      validateAttendancePayload(attendanceData);
+      
       const result = await attendanceService.createAttendance(attendanceData);
       res.status(201).json(result[0]);
     } catch (error) {
       console.error('Error creating attendance:', error);
-      res.status(500).json({ error: 'Failed to create attendance' });
+      const status = error.statusCode || 500;
+      res.status(status).json({ error: error.message || 'Failed to create attendance' });
     }
   },
 
@@ -27,12 +32,15 @@ module.exports = {
   async updateAttendance(req, res) {
     try {
       const { id } = req.params;
-      const attendanceData = req.body;
+      const attendanceData = normalizeAttendancePayload(req.body);
+      validateAttendancePayload(attendanceData, { partial: true });
+      
       const result = await attendanceService.updateAttendance(id, attendanceData);
       res.status(200).json(result[0]);
     } catch (error) {
       console.error('Error updating attendance:', error);
-      res.status(500).json({ error: 'Failed to update attendance' });
+      const status = error.statusCode || 500;
+      res.status(status).json({ error: error.message || 'Failed to update attendance' });
     }
   },
 

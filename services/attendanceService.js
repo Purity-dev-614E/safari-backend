@@ -1,8 +1,13 @@
+const { validate: uuidValidate } = require('uuid');
 const attendanceModel = require('../models/attendanceModel');
+const eventModel = require('../models/eventModel');
+const userModel = require('../models/userModel');
+const userGroupModel = require('../models/userGroupModel');
 const knex = require('../db');
 
 module.exports = {
   async createAttendance(attendanceData) {
+    await ensureValidReferences(attendanceData.event_id, attendanceData.user_id);
     return attendanceModel.create(attendanceData);
   },
   
@@ -11,6 +16,18 @@ module.exports = {
   },
   
   async updateAttendance(id, attendanceData) {
+    if (attendanceData.event_id || attendanceData.user_id) {
+      const existing = await attendanceModel.getById(id);
+      if (!existing) {
+        const error = new Error('Attendance record not found');
+        error.statusCode = 404;
+        throw error;
+      }
+      await ensureValidReferences(
+        attendanceData.event_id || existing.event_id,
+        attendanceData.user_id || existing.user_id
+      );
+    }
     return attendanceModel.update(id, attendanceData);
   },
   
@@ -62,6 +79,40 @@ module.exports = {
     }
   }
 };
+
+async function ensureValidReferences(eventId, userId) {
+  if (!uuidValidate(eventId) || !uuidValidate(userId)) {
+    const error = new Error('event_id and user_id must be valid UUIDs');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const [event, user] = await Promise.all([
+    eventModel.getById(eventId),
+    userModel.getById(userId)
+  ]);
+
+  if (!event) {
+    const error = new Error('Event not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (event.group_id) {
+    const membership = await userGroupModel.getUserGroup(userId, event.group_id);
+    if (!membership) {
+      const error = new Error('User is not a member of the event group');
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+}
 
 // Helper function to calculate the start date based on the period
 function calculateStartDate(period) {

@@ -98,14 +98,18 @@ module.exports = {
 
   //get attendance
   async getAttendancePercentage(groupId) {
-  const result = await knex('attendance')
+  if (!uuidValidate(groupId)) {
+    throw new Error('Invalid UUID format');
+  }
+
+  const result = await db('attendance')
     .join('events', 'attendance.event_id', 'events.id')
     .where('events.group_id', groupId)
     .andWhere('attendance.present', true)
     .countDistinct('attendance.user_id as presentCount')
     .first();
 
-  const totalMembers = await knex('users_groups')
+  const totalMembers = await db('users_groups')
     .where('group_id', groupId)
     .countDistinct('user_id as memberCount')
     .first();
