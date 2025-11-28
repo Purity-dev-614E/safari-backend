@@ -158,10 +158,10 @@ module.exports = {
         if (!resolvedScopeId) {
           throw new Error('groupId is required when scope is group');
         }
-        const group = await groupModel.getGroupById(resolvedScopeId);
-        if (!group || group.region_id !== userRegionId) {
-          throw new Error('Access denied. You can only view groups in your region.');
-        }
+        // const group = await groupModel.getGroupById(resolvedScopeId);
+        // if (!group || group.region_id !== userRegionId) {
+        //   throw new Error('Access denied. You can only view groups in your region.');
+        // }
       }
     } else {
       if (resolvedScope === 'region') {
