@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const attendanceController = require('../controllers/attendanceController');
+const analyticsController = require('../controllers/analyticsController');
 const { authenticate } = require('../auth'); // Comment out this line
 const groupController = require('../controllers/groupController');
 
@@ -8,9 +9,8 @@ const groupController = require('../controllers/groupController');
 router.use(authenticate); // Comment out this line
 
 router.post('/event/:eventId', attendanceController.createAttendance); // Event-specific create attendance
-router.get('/:id', attendanceController.getAttendanceById);
-router.put('/:id', attendanceController.updateAttendance);
-router.delete('/:id', attendanceController.deleteAttendance);
+
+router.get('/overview', analyticsController.getAttendanceOverview);
 
 router.get('/week', attendanceController.getAttendanceByTimePeriod);
 router.get('/month', attendanceController.getAttendanceByTimePeriod);
@@ -25,9 +25,14 @@ router.get('/event/:eventId', attendanceController.getAttendanceByEvent);
 // User attendance
 router.get('/user/:userId', attendanceController.getAttendanceByUser);
 
-// Fetch overall attendance by period
-router.get('/:period', groupController.getOverallAttendanceByPeriod);
-
+// Group attendance
 router.get('/group/:groupId', attendanceController.getGroupAttendance);
+
+// Fetch overall attendance by period
+router.get('/overall/:period', groupController.getOverallAttendanceByPeriod);
+
+router.get('/:id', attendanceController.getAttendanceById);
+router.put('/:id', attendanceController.updateAttendance);
+router.delete('/:id', attendanceController.deleteAttendance);
 
 module.exports = router;

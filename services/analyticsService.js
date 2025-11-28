@@ -2,7 +2,6 @@ const analyticsModel = require('../models/analyticsModel');
 const regionAnalyticsModel = require('../models/regionAnalyticsModel');
 const groupModel = require('../models/groupModel');
 const regionModel = require('../models/regionModel');
-const attendanceService = require('../services/attendanceService');
 
 module.exports = {
   // Group Analytics
@@ -141,36 +140,53 @@ module.exports = {
     
     throw new Error('Region-specific event type analytics not implemented');
   },
-async getAttendanceOverview(req, res) {
-  try {
-    const { period, scope = 'overall', scopeId, bypassRegionCheck } = req.query;
 
-    if (!period) {
-      return res.status(400).json({ message: 'period is required' });
+  async getAttendanceOverview(period, scope = 'overall', scopeId, userRegionId, bypassRegionCheck) {
+    let resolvedScope = scope || 'overall';
+    let resolvedScopeId = scopeId || null;
+
+    if (!bypassRegionCheck) {
+      if (resolvedScope === 'overall') {
+        throw new Error('Access denied. You can only view data for your region or groups.');
+      }
+
+      if (resolvedScope === 'region') {
+        resolvedScopeId = userRegionId;
+      }
+
+      if (resolvedScope === 'group') {
+        if (!resolvedScopeId) {
+          throw new Error('groupId is required when scope is group');
+        }
+        const group = await groupModel.getGroupById(resolvedScopeId);
+        if (!group || group.region_id !== userRegionId) {
+          throw new Error('Access denied. You can only view groups in your region.');
+        }
+      }
+    } else {
+      if (resolvedScope === 'region') {
+        if (!resolvedScopeId) {
+          throw new Error('regionId is required when scope is region');
+        }
+        const region = await regionModel.getRegionById(resolvedScopeId);
+        if (!region) {
+          throw new Error('Region not found');
+        }
+      }
+
+      if (resolvedScope === 'group' && resolvedScopeId) {
+        const group = await groupModel.getGroupById(resolvedScopeId);
+        if (!group) {
+          throw new Error('Group not found');
+        }
+      }
     }
 
-    const overview = await attendanceService.getAttendanceOverview(
-      period,
-      scope,
-      scopeId || null,
-      req.user.region_id,
-      bypassRegionCheck === 'true'
-    );
-
-    return res.status(200).json({
-      success: true,
-      data: overview
+    return analyticsModel.getAttendanceOverview(period, {
+      scope: resolvedScope,
+      scopeId: resolvedScopeId,
     });
-
-  } catch (error) {
-    console.error('Error fetching attendance overview:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-},
-
+  },
   
   // Event Analytics
   async getEventParticipationStats(eventId, userRegionId, bypassRegionCheck) {
