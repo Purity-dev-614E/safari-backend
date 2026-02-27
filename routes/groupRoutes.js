@@ -10,6 +10,10 @@ router.use(authenticate);
 // Group CRUD operations with RBAC
 router.post('/', requireRole('admin'), checkRegionAccess, groupController.createGroup);
 router.get('/', checkRegionAccess, groupController.getAllGroups);
+
+// Get all groups for profile selection (bypasses RBAC restrictions)
+router.get('/all-for-profile', groupController.getAllGroupsForProfile);
+
 router.get('/:id', groupController.getGroupById);
 router.get('/name', groupController.getGroupByName);
 router.put('/:id', requireRole('admin'), groupController.updateGroup);
@@ -35,8 +39,5 @@ router.get('/:id/attendance', groupController.getAttendanceByGroupAndPeriod);
 
 // Fetch overall attendance by period
 router.get('/attendance/:period', requireRole('admin'), groupController.getOverallAttendanceByPeriod);
-
-// Get all groups for profile selection (bypasses RBAC restrictions)
-router.get('/all-for-profile', groupController.getAllGroupsForProfile);
 
 module.exports = router;
