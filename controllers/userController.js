@@ -72,33 +72,63 @@ module.exports = {
       const requesterRole = req.fullUser?.role;
       const requesterId = req.fullUser?.id;
       
+      console.log('DEBUG updateUser - Request data:', {
+        id,
+        userData,
+        requesterRole,
+        requesterId,
+        fullUser: req.fullUser
+      });
+      
       // Check if user exists and get current data
       const existingUser = await userService.getUserById(id);
       if (!existingUser) {
         return res.status(404).json({ error: 'User not found' });
       }
       
+      console.log('DEBUG updateUser - Existing user:', {
+        existingUserId: existingUser.id,
+        existingUserRole: existingUser.role,
+        existingUserRegion: existingUser.region_id
+      });
+      
       // Users can only update their own profile (except role)
       if (requesterRole === 'user' && requesterId !== id) {
+        console.log('DEBUG updateUser - 403: User trying to update another user');
         return res.status(403).json({ error: 'Access denied' });
       }
       
       // Handle role assignment for users without existing roles
       if (requesterRole === 'user') {
+        console.log('DEBUG updateUser - Role handling for user:', {
+          hasExistingRole: !!existingUser.role,
+          requestedRole: userData.role
+        });
+        
         // If user doesn't have a role yet, allow them to set it (default to 'user' if not provided)
         if (!existingUser.role) {
           if (!userData.role) {
             userData.role = 'user'; // Default to 'user' role
+            console.log('DEBUG updateUser - Defaulted role to "user"');
+          } else {
+            console.log('DEBUG updateUser - Using provided role:', userData.role);
           }
         } else {
           // If user already has a role, they cannot change it
           delete userData.role;
+          console.log('DEBUG updateUser - Removed role field, user already has role:', existingUser.role);
         }
       }
       
       // Regional managers can only update users in their region
       if (requesterRole === 'regional manager') {
+        console.log('DEBUG updateUser - Regional manager check:', {
+          existingUserRegion: existingUser.region_id,
+          requesterRegion: req.fullUser.region_id
+        });
+        
         if (existingUser.region_id !== req.fullUser.region_id) {
+          console.log('DEBUG updateUser - 403: Regional manager accessing user outside region');
           return res.status(403).json({ error: 'Access denied: User not in your region' });
         }
       }
