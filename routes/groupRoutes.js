@@ -16,15 +16,15 @@ router.get('/all-for-profile', groupController.getAllGroupsForProfile);
 
 router.get('/:id', groupController.getGroupById);
 router.get('/name', groupController.getGroupByName);
-router.put('/:id', requireRole('admin'), groupController.updateGroup);
+router.put('/:id',  groupController.updateGroup);
 router.delete('/:id', requireRole('super admin'), groupController.deleteGroup);
 
 router.get('/:id/groupDemographics', groupController.getGroupDemographics);
 
 // Group members
 router.get('/:id/members', groupController.getGroupMembers);
-router.post('/:id/members', requireRole('admin'), groupController.addGroupMember);
-router.delete('/:id/members/:userId', requireRole('admin'), groupController.removeGroupMember);
+router.post('/:id/members',  groupController.addGroupMember);
+router.delete('/:id/members/:userId',  groupController.removeGroupMember);
 
 router.get('/admin/:userId/groups', groupController.getAdminGroups); // Ensure this matches the frontend
 
@@ -32,12 +32,12 @@ router.get('/admin/:userId/groups', groupController.getAdminGroups); // Ensure t
 router.get('/user/:userId', groupController.getGroupsByUserId);
 
 // Assign admin to group - only root, super admin, regional manager
-router.post('/assign-admin', requireRole('regional manager'), groupController.assignAdminToGroup);
+router.post('/assign-admin', groupController.assignAdminToGroup);
 
 // Fetch attendance by group and period
 router.get('/:id/attendance', groupController.getAttendanceByGroupAndPeriod);
 
 // Fetch overall attendance by period
-router.get('/attendance/:period', requireRole('admin'), groupController.getOverallAttendanceByPeriod);
+router.get('/attendance/:period', groupController.getOverallAttendanceByPeriod);
 
 module.exports = router;

@@ -12,7 +12,7 @@ router.get('/search', checkRegionAccess, requireRole('admin'), userController.ge
 router.get('/:id', userController.getUserById);
 router.get('/:email', userController.getUserByEmail);
 router.put('/:id', validateRoleChange, userController.updateUser);
-router.delete('/:id', requireRole('super_admin'), userController.deleteUser);
+router.delete('/:id', requireRole('super admin', 'root'), userController.deleteUser);
 router.put('/:id/uploadimage', userController.updateProfilePicture);
 
 module.exports = router;
