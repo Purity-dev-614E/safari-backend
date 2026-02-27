@@ -98,6 +98,25 @@ module.exports = {
         return res.status(403).json({ error: 'Access denied' });
       }
       
+      // Handle group selection during profile setup
+      if (requesterRole === 'user' && userData.group_id && requesterId === id) {
+        console.log('DEBUG updateUser - User self-assigning to group during profile setup:', userData.group_id);
+        
+        // Allow users to add themselves to groups during profile setup
+        // This is a special exception to RBAC for initial profile completion
+        try {
+          const groupService = require('../services/groupService');
+          await groupService.addGroupMember(userData.group_id, id);
+          console.log('DEBUG updateUser - Successfully added user to group:', userData.group_id);
+        } catch (error) {
+          console.error('DEBUG updateUser - Failed to add user to group:', error);
+          // Don't fail the whole update if group assignment fails
+        }
+        
+        // Remove group_id from user data since it's handled via users_groups table
+        delete userData.group_id;
+      }
+      
       // Handle role assignment for users without existing roles
       if (requesterRole === 'user') {
         console.log('DEBUG updateUser - Role handling for user:', {
