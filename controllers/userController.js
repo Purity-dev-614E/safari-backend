@@ -83,9 +83,17 @@ module.exports = {
         return res.status(403).json({ error: 'Access denied' });
       }
       
-      // Regular users cannot change their role
-      if (requesterRole === 'user' && userData.role) {
-        delete userData.role;
+      // Handle role assignment for users without existing roles
+      if (requesterRole === 'user') {
+        // If user doesn't have a role yet, allow them to set it (default to 'user' if not provided)
+        if (!existingUser.role) {
+          if (!userData.role) {
+            userData.role = 'user'; // Default to 'user' role
+          }
+        } else {
+          // If user already has a role, they cannot change it
+          delete userData.role;
+        }
       }
       
       // Regional managers can only update users in their region
