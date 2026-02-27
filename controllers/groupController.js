@@ -396,8 +396,9 @@ module.exports = {
       console.error('Error fetching groups by user ID:', error);
       res.status(500).json({ error: 'Failed to fetch groups by user ID' });
     }
-  }
-// Get all groups for profile selection (bypasses RBAC restrictions)
+  },
+
+  // Get all groups for profile selection (bypasses RBAC restrictions)
   async getAllGroupsForProfile(req, res) {
     try {
       // This endpoint allows all authenticated users to see all groups for profile selection
