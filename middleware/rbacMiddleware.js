@@ -118,7 +118,12 @@ const validateRoleChange = (req, res, next) => {
   // Get requester's role from authenticated user
   const requesterRole = req.fullUser?.role;
   
+  // Allow users without roles to set their initial role (for profile completion)
   if (!requesterRole) {
+    // Only allow if the user is updating their own profile and setting 'user' role
+    if (req.fullUser?.id === targetUserId && normalizedRole === 'user') {
+      return next();
+    }
     return res.status(403).json({ error: 'User role not found' });
   }
   

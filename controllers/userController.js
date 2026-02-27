@@ -147,10 +147,14 @@ module.exports = {
       
       const result = await userService.updateUser(id, userData);
       
+      console.log('DEBUG updateUser - Service result:', result);
+      
       if (!result || result.length === 0) {
+        console.log('DEBUG updateUser - 404: User not found after update');
         return res.status(404).json({ error: 'User not found' });
       }
       
+      console.log('DEBUG updateUser - Success, returning:', result[0]);
       res.status(200).json(result[0]);
     } catch (error) {
       console.error('Error updating user:', error);
