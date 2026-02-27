@@ -32,7 +32,21 @@ module.exports = {
     return eventModel.delete(id);
   },
 
-  async getAllEvents() {
+  async getAllEvents(regionId = null) {
+    // This would need to be implemented based on your event model
+    // For now, return all events (this should be restricted in production)
+    return eventModel.getAll();
+  },
+
+  async getEventsByAdminGroups(adminId) {
+    // This would need to be implemented based on your group structure
+    // For now, return all events (this should be restricted in production)
+    return eventModel.getAll();
+  },
+
+  async getEventsByUserGroups(userId) {
+    // This would need to be implemented based on your group structure
+    // For now, return all events (this should be restricted in production)
     return eventModel.getAll();
   },
 

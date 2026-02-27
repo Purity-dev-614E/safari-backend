@@ -4,13 +4,6 @@ module.exports = {
   async createRegion(req, res) {
     try {
       const regionData = req.body;
-      const requesterRole = req.fullUser?.role;
-      
-      // Only root and super admin can create regions
-      if (!['root', 'super admin'].includes(requesterRole)) {
-        return res.status(403).json({ error: 'Only root and super admin can create regions' });
-      }
-      
       const result = await regionService.createRegion(regionData);
       res.status(201).json(result);
     } catch (error) {
@@ -23,19 +16,11 @@ module.exports = {
     try {
       console.log('Fetching region by ID:', req.params.id);
       const { id } = req.params;
-      const requesterRole = req.fullUser?.role;
-      const requesterRegionId = req.fullUser?.region_id;
-      
       const region = await regionService.getRegionById(id);
       
       if (!region) {
         console.log('Region not found for ID:', id);
         return res.status(404).json({ error: 'Region not found' });
-      }
-      
-      // Regional managers can only see their own region
-      if (requesterRole === 'regional manager' && region.id !== requesterRegionId) {
-        return res.status(403).json({ error: 'Access denied: You can only view your own region' });
       }
       
       console.log('Region fetched successfully:', region);
@@ -50,13 +35,6 @@ module.exports = {
     try {
       const { id } = req.params;
       const regionData = req.body;
-      const requesterRole = req.fullUser?.role;
-      
-      // Only root and super admin can update regions
-      if (!['root', 'super admin'].includes(requesterRole)) {
-        return res.status(403).json({ error: 'Only root and super admin can update regions' });
-      }
-      
       const result = await regionService.updateRegion(id, regionData);
       
       if (!result) {
@@ -73,13 +51,6 @@ module.exports = {
   async deleteRegion(req, res) {
     try {
       const { id } = req.params;
-      const requesterRole = req.fullUser?.role;
-      
-      // Only root and super admin can delete regions
-      if (!['root', 'super admin'].includes(requesterRole)) {
-        return res.status(403).json({ error: 'Only root and super admin can delete regions' });
-      }
-      
       const result = await regionService.deleteRegion(id);
       
       if (result === 0) {
@@ -95,30 +66,8 @@ module.exports = {
 
   async getAllRegions(req, res) {
     try {
-      const requesterRole = req.fullUser?.role;
-      
-      let regions;
-      
-      // Root and super admin can see all regions
-      if (['root', 'super admin'].includes(requesterRole)) {
-        regions = await regionService.getAllRegions();
-      }
-      // Regional managers can only see their own region
-      else if (requesterRole === 'regional manager') {
-        const requesterRegionId = req.fullUser?.region_id;
-        if (requesterRegionId) {
-          const region = await regionService.getRegionById(requesterRegionId);
-          regions = region ? [region] : [];
-        } else {
-          regions = [];
-        }
-      }
-      // Admins and users can see all regions for dropdown purposes
-      else {
-        regions = await regionService.getAllRegions();
-      }
-      
-      console.log(regions);
+      const regions = await regionService.getAllRegions();
+      console.log (regions);
       res.status(200).json(regions);
     } catch (error) {
       console.error('Error fetching regions:', error);
@@ -129,14 +78,6 @@ module.exports = {
   async getUsersByRegion(req, res) {
     try {
       const { regionId } = req.params;
-      const requesterRole = req.fullUser?.role;
-      const requesterRegionId = req.fullUser?.region_id;
-      
-      // Regional managers can only see users in their own region
-      if (requesterRole === 'regional manager' && regionId !== requesterRegionId) {
-        return res.status(403).json({ error: 'Access denied: You can only view users in your own region' });
-      }
-      
       const users = await regionService.getUsersByRegion(regionId);
       res.status(200).json(users);
     } catch (error) {
@@ -148,14 +89,6 @@ module.exports = {
   async getGroupsByRegion(req, res) {
     try {
       const { regionId } = req.params;
-      const requesterRole = req.fullUser?.role;
-      const requesterRegionId = req.fullUser?.region_id;
-      
-      // Regional managers can only see groups in their own region
-      if (requesterRole === 'regional manager' && regionId !== requesterRegionId) {
-        return res.status(403).json({ error: 'Access denied: You can only view groups in your own region' });
-      }
-      
       const groups = await regionService.getGroupsByRegion(regionId);
       res.status(200).json(groups);
     } catch (error) {

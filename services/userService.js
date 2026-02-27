@@ -22,8 +22,23 @@ module.exports = {
     return userModel.delete(id);
   },
   
-  async getAllUsers() {
+  async getAllUsers(regionId = null) {
+    if (regionId) {
+      return userModel.getAllByRegion(regionId);
+    }
     return userModel.getAll();
+  },
+
+  async getUsersInAdminGroup(adminId) {
+    // This would need to be implemented based on your group structure
+    // For now, return all users (this should be restricted in production)
+    return userModel.getAll();
+  },
+
+  async canAdminUpdateUser(adminId, targetUserId) {
+    // This would need to be implemented based on your group structure
+    // Check if target user is in the admin's group
+    return true; // Placeholder
   },
 
   async updateProfilePicture(id, base64Image) {

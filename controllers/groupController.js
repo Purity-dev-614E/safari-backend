@@ -7,6 +7,16 @@ module.exports = {
     try {
       console.log('Creating group with data:', req.body);
       const groupData = req.body;
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Regional managers can only create groups in their region
+      if (requesterRole === 'regional manager') {
+        groupData.region_id = requesterRegionId;
+      }
+      
+      // Admins can only create groups (no region restrictions needed as they're assigned to existing groups)
+      
       const result = await groupService.createGroup(groupData);
       console.log('Group created successfully:', result[0]);
       res.status(201).json(result[0]);
@@ -25,6 +35,15 @@ module.exports = {
         return res.status(404).json({ error: 'Group not found' });
       }
       
+      // Check access permissions
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Regional managers can only see groups in their region
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
       res.status(200).json(group);
     } catch (error) {
       console.error('Error fetching group:', error);
@@ -39,6 +58,16 @@ module.exports = {
       if (!group) {
         return res.status(404).json({ error: 'Group not found' });
       }
+      
+      // Check access permissions
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Regional managers can only see groups in their region
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
       res.status(200).json(group);
     } catch (error) {
       console.error('Error fetching group:', error);
@@ -50,6 +79,25 @@ module.exports = {
     try {
       const { id } = req.params;
       const groupData = req.body;
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Check if group exists and get current data
+      const existingGroup = await groupService.getGroupById(id);
+      if (!existingGroup) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Regional managers can only update groups in their region
+      if (requesterRole === 'regional manager' && existingGroup.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
+      // Admins can only update groups they administer
+      if (requesterRole === 'admin' && existingGroup.group_admin_id !== req.fullUser.id) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+      
       const result = await groupService.updateGroup(id, groupData);
       
       if (!result || result.length === 0) {
@@ -66,6 +114,19 @@ module.exports = {
   async deleteGroup(req, res) {
     try {
       const { id } = req.params;
+      const requesterRole = req.fullUser?.role;
+      
+      // Check if group exists
+      const existingGroup = await groupService.getGroupById(id);
+      if (!existingGroup) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Only root and super admin can delete groups
+      if (!['root', 'super admin'].includes(requesterRole)) {
+        return res.status(403).json({ error: 'Only root and super admin can delete groups' });
+      }
+      
       const result = await groupService.deleteGroup(id);
       
       if (result === 0) {
@@ -81,7 +142,29 @@ module.exports = {
   
   async getAllGroups(req, res) {
     try {
-      const groups = await groupService.getAllGroups();
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      const regionId = req.query.region_id;
+      
+      let groups;
+      
+      // Root and super admin can see all groups
+      if (['root', 'super admin'].includes(requesterRole)) {
+        groups = await groupService.getAllGroups(regionId);
+      }
+      // Regional managers can only see groups in their region
+      else if (requesterRole === 'regional manager') {
+        groups = await groupService.getAllGroups(requesterRegionId);
+      }
+      // Admins can only see their own groups
+      else if (requesterRole === 'admin') {
+        groups = await groupService.getAdminGroups(req.fullUser.id);
+      }
+      // Users can only see groups they belong to
+      else {
+        groups = await groupService.getGroupByUserId(req.fullUser.id);
+      }
+      
       res.status(200).json(groups);
     } catch (error) {
       console.error('Error fetching groups:', error);
@@ -92,6 +175,24 @@ module.exports = {
   async getGroupMembers(req, res) {
     try {
       const { id } = req.params;
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Check if group exists and get data
+      const group = await groupService.getGroupById(id);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
+      if (requesterRole === 'admin' && group.group_admin_id !== req.fullUser.id) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+      
       const members = await groupService.getGroupMembers(id);
       res.status(200).json(members);
     } catch (error) {
@@ -104,12 +205,29 @@ module.exports = {
     try {
       const { id } = req.params; // Group ID
       const { userId } = req.body; // User ID from request body
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
 
       console.log(`Adding member to group. Group ID: ${id}, User ID: ${userId}`);
 
       if (!userId) {
-        console.warn('User ID is missing in the request body');
+        console.warn('User ID is missing in request body');
         return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      // Check if group exists and get data
+      const group = await groupService.getGroupById(id);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
+      if (requesterRole === 'admin' && group.group_admin_id !== req.fullUser.id) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
       }
 
       const result = await groupService.addGroupMember(id, userId);
@@ -120,9 +238,28 @@ module.exports = {
       res.status(500).json({ error: 'Failed to add group member' });
     }
   },
+  
   async removeGroupMember(req, res) {
     try {
       const { id, userId } = req.params;
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Check if group exists and get data
+      const group = await groupService.getGroupById(id);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
+      if (requesterRole === 'admin' && group.group_admin_id !== req.fullUser.id) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+      
       await groupService.removeGroupMember(id, userId);
       res.status(204).end();
     } catch (error) {
@@ -134,12 +271,18 @@ module.exports = {
   async assignAdminToGroup(req, res) {
     try {
       const { groupId, userId } = req.body;
-      const superAdminId = req.user.id; // Assuming req.user is set by the authenticate middleware
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
 
-      // Check if the user is a super admin
-      const superAdmin = await userService.getUserById(superAdminId);
-      if (superAdmin.role !== 'super_admin') {
-        return res.status(403).json({ error: 'Only super admins can assign admins to groups' });
+      // Check if group exists and get data
+      const group = await groupService.getGroupById(groupId);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Regional managers can only assign admins to groups in their region
+      if (requesterRole === 'regional_manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
       }
 
       // Assign admin to group
@@ -154,6 +297,24 @@ module.exports = {
   async getGroupDemographics(req, res) {
     try {
       const { id } = req.params;
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Check if group exists and get data
+      const group = await groupService.getGroupById(id);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
+      if (requesterRole === 'admin' && group.group_admin_id !== req.fullUser.id) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+      
       const demographics = await groupService.getGroupDemographics(id);
       res.status(200).json(demographics);
     } catch (error) {
@@ -178,8 +339,26 @@ module.exports = {
   // Fetch attendance by group and period
   async getAttendanceByGroupAndPeriod(req, res) {
     const { id } = req.params;
-    const { period } = req.params;
+    const { period } = req.query; // Changed from params to query
+    const requesterRole = req.fullUser?.role;
+    const requesterRegionId = req.fullUser?.region_id;
+    
     try {
+      // Check if group exists and get data
+      const group = await groupService.getGroupById(id);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+      
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+      
+      if (requesterRole === 'admin' && group.group_admin_id !== req.fullUser.id) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+      
       const attendance = await attendanceService.getAttendanceByGroupAndPeriod(id, period);
       res.status(200).json(attendance);
     } catch (error) {

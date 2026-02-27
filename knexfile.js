@@ -20,7 +20,19 @@ module.exports = {
       directory: './migrations'
     }
   },
-  
+
+  test: {
+    client: 'postgresql',
+    connection: process.env.SUPABASE_HOST_TEST,  // Use the test connection string
+    pool: {
+      min: 2,
+      max: 10
+    },
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: './migrations'
+    }
+  },
 
   staging: {
     client: 'postgresql',

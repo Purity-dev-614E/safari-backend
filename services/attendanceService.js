@@ -3,12 +3,31 @@ const attendanceModel = require('../models/attendanceModel');
 const eventModel = require('../models/eventModel');
 const userModel = require('../models/userModel');
 const userGroupModel = require('../models/userGroupModel');
+const memberActivityService = require('./memberActivityService');
 const knex = require('../db');
 
 module.exports = {
   async createAttendance(attendanceData) {
     await ensureValidReferences(attendanceData.event_id, attendanceData.user_id);
-    return attendanceModel.create(attendanceData);
+    const result = await attendanceModel.create(attendanceData);
+    
+    // If user is marked present, reactivate them
+    if (attendanceData.present) {
+      try {
+        const event = await eventModel.getById(attendanceData.event_id);
+        if (event && event.group_id) {
+          await memberActivityService.reactivateMemberOnAttendance(
+            event.group_id, 
+            attendanceData.user_id
+          );
+        }
+      } catch (error) {
+        console.error('Error reactivating member on attendance:', error);
+        // Don't throw error, just log it
+      }
+    }
+    
+    return result;
   },
   
   async getAttendanceById(id) {
@@ -77,6 +96,11 @@ module.exports = {
       console.error('Error fetching overall attendance by period:', error);
       throw new Error('Failed to fetch overall attendance by period');
     }
+  },
+
+  // Check and mark inactive members for a specific group
+  async checkAndMarkInactiveMembers(groupId) {
+    return memberActivityService.checkAndMarkInactiveAfterAttendance(groupId);
   }
 };
 

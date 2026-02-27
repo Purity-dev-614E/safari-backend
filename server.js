@@ -14,6 +14,9 @@ const attendanceRoutes = require('./routes/attendanceRoutes');
 const authRoutes = require('./routes/authRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const regionRoutes = require('./routes/regionRoutes');
+const memberActivityRoutes = require('./routes/memberActivityRoutes');
+const auditRoutes = require('./routes/auditRoutes');
+const removedMembersRoutes = require('./routes/removedMembersRoutes');
 
 // Import role-specific analytics routes
 const superAdminAnalyticsRoutes = require('./routes/superAdminAnalyticsRoutes');
@@ -43,6 +46,9 @@ app.use('/api/events', eventRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/analytics', analyticsRoutes); // Keep for backward compatibility
 app.use('/api/regions', regionRoutes);
+app.use('/api/member-activity', memberActivityRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api', removedMembersRoutes);
 
 // Role-specific analytics routes
 app.use('/api/super-admin/analytics', superAdminAnalyticsRoutes);

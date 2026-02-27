@@ -1,6 +1,5 @@
 const userService = require('../services/userService');
 const { hasRoleLevel } = require('../middleware/rbacMiddleware');
-const auditLogService = require('../services/auditLogService');
 
 module.exports = {
   async getUserById(req, res) {
@@ -23,7 +22,7 @@ module.exports = {
       }
       
       // Regional managers can only see users in their region
-      if (requesterRole === 'regional manager' && user.region_id !== requesterRegionId) {
+      if (requesterRole === 'regional_manager' && user.region_id !== requesterRegionId) {
         return res.status(403).json({ error: 'Access denied: User not in your region' });
       }
       
@@ -89,22 +88,10 @@ module.exports = {
       }
       
       // Regional managers can only update users in their region
-      if (requesterRole === 'regional manager') {
+      if (requesterRole === 'regional_manager') {
         if (existingUser.region_id !== req.fullUser.region_id) {
           return res.status(403).json({ error: 'Access denied: User not in your region' });
         }
-      }
-      
-      // Log role change if it's happening
-      if (userData.role && userData.role !== existingUser.role) {
-        await auditLogService.logRoleChange(
-          requesterId,
-          id,
-          existingUser.role,
-          userData.role,
-          req.ip,
-          req.get('User-Agent')
-        );
       }
       
       const result = await userService.updateUser(id, userData);
@@ -124,7 +111,6 @@ module.exports = {
     try {
       const { id } = req.params;
       const requesterRole = req.fullUser?.role;
-      const requesterId = req.fullUser?.id;
       
       // Check if user exists
       const existingUser = await userService.getUserById(id);
@@ -138,29 +124,20 @@ module.exports = {
       }
       
       // Super admin cannot delete root users
-      if (existingUser.role === 'root' && requesterRole === 'super admin') {
+      if (existingUser.role === 'root' && requesterRole === 'super_admin') {
         return res.status(403).json({ error: 'Cannot delete root users' });
       }
       
       // Regional managers can only delete users in their region
-      if (requesterRole === 'regional manager') {
+      if (requesterRole === 'regional_manager') {
         if (existingUser.region_id !== req.fullUser.region_id) {
           return res.status(403).json({ error: 'Access denied: User not in your region' });
         }
         // Cannot delete users with higher or equal roles
-        if (['root', 'super admin', 'regional manager'].includes(existingUser.role)) {
+        if (['root', 'super_admin', 'regional_manager'].includes(existingUser.role)) {
           return res.status(403).json({ error: 'Cannot delete users with this role level' });
         }
       }
-      
-      // Log user deletion
-      await auditLogService.logUserDeletion(
-        requesterId,
-        id,
-        existingUser.role,
-        req.ip,
-        req.get('User-Agent')
-      );
       
       const result = await userService.deleteUser(id);
       
@@ -184,11 +161,11 @@ module.exports = {
       let users;
       
       // Root and super admin can see all users
-      if (['root', 'super admin'].includes(requesterRole)) {
+      if (['root', 'super_admin'].includes(requesterRole)) {
         users = await userService.getAllUsers(regionId);
       }
       // Regional managers can only see users in their region
-      else if (requesterRole === 'regional manager') {
+      else if (requesterRole === 'regional_manager') {
         users = await userService.getAllUsers(requesterRegionId);
       }
       // Admins can only see users in their group (handled at service level)

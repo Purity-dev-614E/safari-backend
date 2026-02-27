@@ -1,5 +1,6 @@
 const eventService = require('../services/eventService');
-const userService = require('../services/userService'); // Assuming you have a userService to get user roles
+const userService = require('../services/userService');
+const groupService = require('../services/groupService');
 
 module.exports = {
   async createEvent(req, res) {
@@ -7,13 +8,30 @@ module.exports = {
       console.log('Creating event...');
       const { groupId } = req.params;
       const eventData = req.body;
-      const userId = req.user.id; // Assuming req.user is set by the authenticate middleware
+      const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
+      const requesterRegionId = req.fullUser?.region_id;
 
       console.log('Received event data:', eventData);
-      console.log('User ID:', userId);
+      console.log('User ID:', requesterId);
       console.log('Group ID:', groupId);
 
-      // Ensure the date is correctly formatted
+      // Check if group exists and get group data
+      const group = await groupService.getGroupById(groupId);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+
+      if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+
+      // Ensure date is correctly formatted
       if (eventData.date) {
         const date = new Date(eventData.date);
         if (isNaN(date.getTime())) {
@@ -44,6 +62,25 @@ module.exports = {
       if (!event) {
         return res.status(404).json({ error: 'Event not found' });
       }
+
+      // Get group data to check permissions
+      const group = await groupService.getGroupById(event.group_id);
+      if (!group) {
+        return res.status(404).json({ error: 'Associated group not found' });
+      }
+
+      // Check access permissions
+      const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
+      const requesterRegionId = req.fullUser?.region_id;
+
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Event not in your region' });
+      }
+
+      if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
       
       res.status(200).json(event);
     } catch (error) {
@@ -56,8 +93,32 @@ module.exports = {
     try {
       const { id } = req.params;
       const eventData = req.body;
+      const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
+      const requesterRegionId = req.fullUser?.region_id;
 
-      // Ensure the date is correctly formatted
+      // Check if event exists and get event data
+      const existingEvent = await eventService.getEventById(id);
+      if (!existingEvent) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      // Get group data to check permissions
+      const group = await groupService.getGroupById(existingEvent.group_id);
+      if (!group) {
+        return res.status(404).json({ error: 'Associated group not found' });
+      }
+
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Event not in your region' });
+      }
+
+      if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+
+      // Ensure date is correctly formatted
       if (eventData.date) {
         const date = new Date(eventData.date);
         if (isNaN(date.getTime())) {
@@ -82,6 +143,31 @@ module.exports = {
   async deleteEvent(req, res) {
     try {
       const { id } = req.params;
+      const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
+      const requesterRegionId = req.fullUser?.region_id;
+
+      // Check if event exists and get event data
+      const existingEvent = await eventService.getEventById(id);
+      if (!existingEvent) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      // Get group data to check permissions
+      const group = await groupService.getGroupById(existingEvent.group_id);
+      if (!group) {
+        return res.status(404).json({ error: 'Associated group not found' });
+      }
+
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Event not in your region' });
+      }
+
+      if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+
       const result = await eventService.deleteEvent(id);
       
       if (result === 0) {
@@ -97,7 +183,29 @@ module.exports = {
 
   async getAllEvents(req, res) {
     try {
-      const events = await eventService.getAllEvents();
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      const regionId = req.query.region_id;
+      
+      let events;
+      
+      // Root and super admin can see all events
+      if (['root', 'super admin'].includes(requesterRole)) {
+        events = await eventService.getAllEvents(regionId);
+      }
+      // Regional managers can only see events in their region
+      else if (requesterRole === 'regional manager') {
+        events = await eventService.getAllEvents(requesterRegionId);
+      }
+      // Admins can only see events in their groups
+      else if (requesterRole === 'admin') {
+        events = await eventService.getEventsByAdminGroups(requesterId);
+      }
+      // Users can only see events in their groups
+      else {
+        events = await eventService.getEventsByUserGroups(requesterId);
+      }
+      
       res.status(200).json(events);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -108,6 +216,25 @@ module.exports = {
   async getEventsByGroup(req, res) {
     try {
       const { groupId } = req.params;
+      const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
+      const requesterRegionId = req.fullUser?.region_id;
+
+      // Check if group exists and get group data
+      const group = await groupService.getGroupById(groupId);
+      if (!group) {
+        return res.status(404).json({ error: 'Group not found' });
+      }
+
+      // Check access permissions
+      if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Group not in your region' });
+      }
+
+      if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
+        return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      }
+
       const events = await eventService.getEventsByGroup(groupId);
       res.status(200).json(events);
     } catch (error) {
