@@ -36,4 +36,7 @@ router.get('/:id/attendance', groupController.getAttendanceByGroupAndPeriod);
 // Fetch overall attendance by period
 router.get('/attendance/:period', requireRole('admin'), groupController.getOverallAttendanceByPeriod);
 
+// Get all groups for profile selection (bypasses RBAC restrictions)
+router.get('/all-for-profile', groupController.getAllGroupsForProfile);
+
 module.exports = router;
