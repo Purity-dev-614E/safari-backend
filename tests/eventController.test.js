@@ -29,24 +29,25 @@ describe('Event Controller - Tag Functionality', () => {
 
     test('admin can create org events', async () => {
       mockReq = {
-        params: { groupId: 'test-group-id' },
+        params: { groupId: '380896a5-0a83-4f69-947a-82b3975b05dd' },
         body: { ...baseEventData, tag: 'org' },
         fullUser: { id: 'admin-id', role: 'admin', region_id: 'region-1' }
       };
 
-      const mockGroup = { id: 'test-group-id', group_admin_id: 'admin-id', region_id: 'region-1' };
-      const mockResult = [{ id: 'event-id', ...mockReq.body, group_id: 'test-group-id' }];
+      const mockGroup = { id: '380896a5-0a83-4f69-947a-82b3975b05dd', group_admin_id: 'admin-id', region_id: 'region-1' };
+      const mockResult = [{ id: 'event-id', ...mockReq.body, group_id: '380896a5-0a83-4f69-947a-82b3975b05dd' }];
 
       groupService.getGroupById.mockResolvedValue(mockGroup);
       eventService.createEvent.mockResolvedValue(mockResult);
 
       await eventController.createEvent(mockReq, mockRes);
 
-      expect(groupService.getGroupById).toHaveBeenCalledWith('test-group-id');
+      expect(groupService.getGroupById).toHaveBeenCalledWith('380896a5-0a83-4f69-947a-82b3975b05dd');
+      expect(groupService.getGroupByName).not.toHaveBeenCalled();
       expect(eventService.createEvent).toHaveBeenCalledWith({
         ...baseEventData,
         tag: 'org',
-        group_id: 'test-group-id',
+        group_id: '380896a5-0a83-4f69-947a-82b3975b05dd',
         date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);
@@ -55,7 +56,7 @@ describe('Event Controller - Tag Functionality', () => {
 
     test('admin cannot create leadership events', async () => {
       mockReq = {
-        params: { groupId: 'test-group-id' },
+        params: { groupId: '380896a5-0a83-4f69-947a-82b3975b05dd' },
         body: { ...baseEventData, tag: 'leadership' },
         fullUser: { id: 'admin-id', role: 'admin', region_id: 'region-1' }
       };
@@ -74,13 +75,13 @@ describe('Event Controller - Tag Functionality', () => {
 
     test('regional manager can create leadership events in their region', async () => {
       mockReq = {
-        params: { groupId: 'test-group-id' },
+        params: { groupId: '380896a5-0a83-4f69-947a-82b3975b05dd' },
         body: { ...baseEventData, tag: 'leadership' },
         fullUser: { id: 'rm-id', role: 'regional manager', region_id: 'region-1' }
       };
 
-      const mockGroup = { id: 'test-group-id', region_id: 'region-1' };
-      const mockResult = [{ id: 'event-id', ...mockReq.body, group_id: 'test-group-id' }];
+      const mockGroup = { id: '380896a5-0a83-4f69-947a-82b3975b05dd', region_id: 'region-1' };
+      const mockResult = [{ id: 'event-id', ...mockReq.body, group_id: '380896a5-0a83-4f69-947a-82b3975b05dd' }];
 
       groupService.getGroupById.mockResolvedValue(mockGroup);
       eventService.createEvent.mockResolvedValue(mockResult);
@@ -90,7 +91,7 @@ describe('Event Controller - Tag Functionality', () => {
       expect(eventService.createEvent).toHaveBeenCalledWith({
         ...baseEventData,
         tag: 'leadership',
-        group_id: 'test-group-id',
+        group_id: '380896a5-0a83-4f69-947a-82b3975b05dd',
         date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);
@@ -98,7 +99,7 @@ describe('Event Controller - Tag Functionality', () => {
 
     test('regional manager cannot create leadership events outside their region', async () => {
       mockReq = {
-        params: { groupId: 'test-group-id' },
+        params: { groupId: '380896a5-0a83-4f69-947a-82b3975b05dd' },
         body: { ...baseEventData, tag: 'leadership' },
         fullUser: { id: 'rm-id', role: 'regional manager', region_id: 'region-1' }
       };
@@ -117,13 +118,13 @@ describe('Event Controller - Tag Functionality', () => {
 
     test('root can create any type of event', async () => {
       mockReq = {
-        params: { groupId: 'test-group-id' },
+        params: { groupId: '380896a5-0a83-4f69-947a-82b3975b05dd' },
         body: { ...baseEventData, tag: 'leadership' },
         fullUser: { id: 'root-id', role: 'root', region_id: null }
       };
 
-      const mockGroup = { id: 'test-group-id' };
-      const mockResult = [{ id: 'event-id', ...mockReq.body, group_id: 'test-group-id' }];
+      const mockGroup = { id: '380896a5-0a83-4f69-947a-82b3975b05dd' };
+      const mockResult = [{ id: 'event-id', ...mockReq.body, group_id: '380896a5-0a83-4f69-947a-82b3975b05dd' }];
 
       groupService.getGroupById.mockResolvedValue(mockGroup);
       eventService.createEvent.mockResolvedValue(mockResult);
@@ -133,7 +134,7 @@ describe('Event Controller - Tag Functionality', () => {
       expect(eventService.createEvent).toHaveBeenCalledWith({
         ...baseEventData,
         tag: 'leadership',
-        group_id: 'test-group-id',
+        group_id: '380896a5-0a83-4f69-947a-82b3975b05dd',
         date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);
@@ -141,7 +142,7 @@ describe('Event Controller - Tag Functionality', () => {
 
     test('user cannot create leadership events', async () => {
       mockReq = {
-        params: { groupId: 'test-group-id' },
+        params: { groupId: '380896a5-0a83-4f69-947a-82b3975b05dd' },
         body: { ...baseEventData, tag: 'leadership' },
         fullUser: { id: 'user-id', role: 'user', region_id: 'region-1' }
       };
@@ -160,13 +161,13 @@ describe('Event Controller - Tag Functionality', () => {
 
     test('event defaults to org tag when not specified', async () => {
       mockReq = {
-        params: { groupId: 'test-group-id' },
+        params: { groupId: '380896a5-0a83-4f69-947a-82b3975b05dd' },
         body: baseEventData, // No tag specified
         fullUser: { id: 'admin-id', role: 'admin', region_id: 'region-1' }
       };
 
-      const mockGroup = { id: 'test-group-id', group_admin_id: 'admin-id', region_id: 'region-1' };
-      const mockResult = [{ id: 'event-id', ...baseEventData, tag: 'org', group_id: 'test-group-id' }];
+      const mockGroup = { id: '380896a5-0a83-4f69-947a-82b3975b05dd', group_admin_id: 'admin-id', region_id: 'region-1' };
+      const mockResult = [{ id: 'event-id', ...baseEventData, tag: 'org', group_id: '380896a5-0a83-4f69-947a-82b3975b05dd' }];
 
       groupService.getGroupById.mockResolvedValue(mockGroup);
       eventService.createEvent.mockResolvedValue(mockResult);
@@ -176,7 +177,7 @@ describe('Event Controller - Tag Functionality', () => {
       // The service should handle the default tag logic
       expect(eventService.createEvent).toHaveBeenCalledWith({
         ...baseEventData,
-        group_id: 'test-group-id',
+        group_id: '380896a5-0a83-4f69-947a-82b3975b05dd',
         date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);

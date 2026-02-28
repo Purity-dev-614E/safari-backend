@@ -49,7 +49,8 @@ describe('Event Controller - Group Name Support', () => {
 
     await eventController.createEvent(mockReq, mockRes);
 
-    expect(groupService.getGroupById).toHaveBeenCalledWith('super_admin_group');
+    // Since 'super_admin_group' is not a UUID format, it should call getGroupByName
+    expect(groupService.getGroupById).not.toHaveBeenCalled();
     expect(groupService.getGroupByName).toHaveBeenCalledWith('super_admin_group');
     expect(eventService.createEvent).toHaveBeenCalledWith({
       ...mockReq.body,

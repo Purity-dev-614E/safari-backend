@@ -18,11 +18,20 @@ module.exports = {
 
       // Check if group exists and get group data
       let group;
-      // Try to get group by ID first (UUID), then by name if that fails
-      try {
-        group = await groupService.getGroupById(groupId);
-      } catch (error) {
-        // If ID lookup fails, try by name
+      
+      // Check if groupId looks like a UUID (basic validation)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      if (uuidRegex.test(groupId)) {
+        // Try UUID lookup first
+        try {
+          group = await groupService.getGroupById(groupId);
+        } catch (error) {
+          // UUID failed, try name lookup as fallback
+          group = await groupService.getGroupByName(groupId);
+        }
+      } else {
+        // Not a UUID format, try name lookup directly
         group = await groupService.getGroupByName(groupId);
       }
       
@@ -33,43 +42,12 @@ module.exports = {
       // Check access permissions
       if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
         return res.status(403).json({ error: 'Access denied: Group not in your region' });
-      }
-
-      if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
+      } else if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
         return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
+      } else {
+        // For all other cases, use the group's ID
+        eventData.group_id = group.id;
       }
-
-      // Handle tag permissions
-      const tag = eventData.tag || 'org';
-      
-      // Admin can only create 'org' events
-      if (requesterRole === 'admin' && tag === 'leadership') {
-        return res.status(403).json({ error: 'Access denied: Admins cannot create leadership events' });
-      }
-      
-      // Regional managers can create leadership events only in their region
-      if (requesterRole === 'regional manager' && tag === 'leadership' && group.region_id !== requesterRegionId) {
-        return res.status(403).json({ error: 'Access denied: Cannot create leadership events outside your region' });
-      }
-      
-      // Root and super admin can create any type of event
-      // Users should not be creating events, but if they do, default to 'org'
-      if (requesterRole === 'user' && tag === 'leadership') {
-        return res.status(403).json({ error: 'Access denied: Users cannot create leadership events' });
-      }
-
-      // Ensure date is correctly formatted
-      if (eventData.date) {
-        const date = new Date(eventData.date);
-        if (isNaN(date.getTime())) {
-          console.error('Invalid date format:', eventData.date);
-          return res.status(400).json({ error: 'Invalid date format' });
-        }
-        eventData.date = date.toISOString();
-        console.log('Formatted date:', eventData.date);
-      }
-
-      eventData.group_id = group.id;
       console.log('Final event data to save:', eventData);
 
       const result = await eventService.createEvent(eventData);

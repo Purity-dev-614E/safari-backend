@@ -12,7 +12,7 @@ module.exports = {
   },
 
   async getGroupByName(name){
-    return groupModel.getByName(name);
+    return groupModel.getGroupByName(name);
   },
   
   async updateGroup(id, groupData) {
