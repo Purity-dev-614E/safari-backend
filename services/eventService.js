@@ -12,12 +12,12 @@ module.exports = {
       throw new Error("Invalid tag value. Must be 'org' or 'leadership'");
     }
 
-    if (eventData.date_time) {
-      const date = new Date(eventData.date_time);
+    if (eventData.date) {
+      const date = new Date(eventData.date);
       if (isNaN(date.getTime())) throw new Error("Invalid date format");
 
       // Store as UTC ISO8601 string
-      eventData.date_time = date.toISOString(); // KEEP 'Z'
+      eventData.date = date.toISOString(); // KEEP 'Z'
     }
     return eventModel.create(eventData);
   },
@@ -33,7 +33,7 @@ module.exports = {
       if (isNaN(date.getTime())) {
         throw new Error("Invalid date format");
       }
-      eventData.date_time = date.toISOString(); // KEEP 'Z'
+      eventData.date = date.toISOString(); // KEEP 'Z'
     }
     return eventModel.update(id, eventData);
   },

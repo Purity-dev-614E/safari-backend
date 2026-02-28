@@ -47,7 +47,7 @@ describe('Event Controller - Tag Functionality', () => {
         ...baseEventData,
         tag: 'org',
         group_id: 'test-group-id',
-        date: '2026-02-28 10:00:00.000'
+        date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.json).toHaveBeenCalledWith(mockResult[0]);
@@ -91,7 +91,7 @@ describe('Event Controller - Tag Functionality', () => {
         ...baseEventData,
         tag: 'leadership',
         group_id: 'test-group-id',
-        date: '2026-02-28 10:00:00.000'
+        date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);
     });
@@ -134,7 +134,7 @@ describe('Event Controller - Tag Functionality', () => {
         ...baseEventData,
         tag: 'leadership',
         group_id: 'test-group-id',
-        date: '2026-02-28 10:00:00.000'
+        date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);
     });
@@ -177,7 +177,7 @@ describe('Event Controller - Tag Functionality', () => {
       expect(eventService.createEvent).toHaveBeenCalledWith({
         ...baseEventData,
         group_id: 'test-group-id',
-        date: '2026-02-28 10:00:00.000'
+        date: '2026-02-28T10:00:00.000Z'
       });
       expect(mockRes.status).toHaveBeenCalledWith(201);
     });

@@ -65,7 +65,7 @@ describe('Event Service - Tag Functionality', () => {
     test('should handle date formatting correctly', async () => {
       const eventDataWithDate = {
         ...baseEventData,
-        date_time: '2026-02-28T10:00:00Z'
+        date: '2026-02-28T10:00:00Z'
       };
       const mockResult = [{ id: 'test-id', ...eventDataWithDate, tag: 'org' }];
       eventModel.create.mockResolvedValue(mockResult);
@@ -81,7 +81,7 @@ describe('Event Service - Tag Functionality', () => {
     test('should reject invalid date format', async () => {
       const eventDataWithInvalidDate = {
         ...baseEventData,
-        date_time: 'invalid-date'
+        date: 'invalid-date'
       };
 
       await expect(eventService.createEvent(eventDataWithInvalidDate))

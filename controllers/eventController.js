@@ -57,7 +57,7 @@ module.exports = {
           console.error('Invalid date format:', eventData.date);
           return res.status(400).json({ error: 'Invalid date format' });
         }
-        eventData.date = date.toISOString().replace('T', ' ').replace('Z', '');
+        eventData.date = date.toISOString();
         console.log('Formatted date:', eventData.date);
       }
 
@@ -143,7 +143,7 @@ module.exports = {
         if (isNaN(date.getTime())) {
           return res.status(400).json({ error: 'Invalid date format' });
         }
-        eventData.date = date.toISOString().replace('T', ' ').replace('Z', '');
+        eventData.date = date.toISOString();
       }
 
       const result = await eventService.updateEvent(id, eventData);
