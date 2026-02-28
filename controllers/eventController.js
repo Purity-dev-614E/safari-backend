@@ -27,6 +27,21 @@ module.exports = {
         return res.status(403).json({ error: 'Only super admin, root, and regional managers can create leadership events' });
       }
 
+      // Set default target_audience if not provided
+      if (!eventData.target_audience) {
+        eventData.target_audience = 'all';
+      }
+
+      // Validate target_audience
+      if (!['all', 'rc_only', 'regional'].includes(eventData.target_audience)) {
+        return res.status(400).json({ error: 'Invalid target_audience. Must be all, rc_only, or regional' });
+      }
+
+      // If regional target audience, ensure region_id is provided
+      if (eventData.target_audience === 'regional' && !eventData.region_id) {
+        return res.status(400).json({ error: 'Region ID is required for regional target audience' });
+      }
+
       console.log('Final leadership event data to save:', eventData);
 
       const result = await eventService.createEvent(eventData);
@@ -298,6 +313,47 @@ module.exports = {
     } catch (error) {
       console.error('Error fetching group events:', error);
       res.status(500).json({ error: 'Failed to fetch group events' });
+    }
+  },
+
+  async getLeadershipEventParticipants(req, res) {
+    try {
+      const { id } = req.params;
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Check if event exists and is a leadership event
+      const event = await eventService.getEventById(id);
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      if (event.tag !== 'leadership') {
+        return res.status(400).json({ error: 'This endpoint is only for leadership events' });
+      }
+
+      // Check access permissions - leadership events are visible to all leadership roles
+      if (!['super admin', 'root', 'regional manager', 'rc', 'admin'].includes(requesterRole)) {
+        return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+      }
+
+      // Get target audience from event or query params (query params override event setting)
+      let targetAudience = req.query.target_audience || event.target_audience || 'all';
+      
+      // For regional managers, restrict to their region unless they are super admin/root
+      let regionId = null;
+      if (requesterRole === 'regional manager') {
+        regionId = requesterRegionId;
+      } else if (targetAudience === 'regional' && event.region_id) {
+        // Use event's region_id for regional events
+        regionId = event.region_id;
+      }
+
+      const participants = await userService.getLeadershipEventParticipants(targetAudience, regionId);
+      res.status(200).json(participants);
+    } catch (error) {
+      console.error('Error fetching leadership event participants:', error);
+      res.status(500).json({ error: 'Failed to fetch participants' });
     }
   }
 };

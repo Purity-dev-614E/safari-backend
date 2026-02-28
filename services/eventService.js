@@ -12,6 +12,18 @@ module.exports = {
       throw new Error("Invalid tag value. Must be 'org' or 'leadership'");
     }
 
+    // Set default target_audience for leadership events
+    if (eventData.tag === 'leadership' && !eventData.target_audience) {
+      eventData.target_audience = 'all';
+    }
+
+    // Validate target_audience for leadership events
+    if (eventData.tag === 'leadership' && eventData.target_audience) {
+      if (!['all', 'rc_only', 'regional'].includes(eventData.target_audience)) {
+        throw new Error("Invalid target_audience value. Must be 'all', 'rc_only', or 'regional'");
+      }
+    }
+
     if (eventData.date) {
       const date = new Date(eventData.date);
       if (isNaN(date.getTime())) throw new Error("Invalid date format");

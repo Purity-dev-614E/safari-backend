@@ -43,5 +43,27 @@ module.exports = {
 
   async updateProfilePicture(id, base64Image) {
     return userModel.updateProfilePicture(id, base64Image);
+  },
+
+  async getLeadershipEventParticipants(targetAudience = 'all', regionId = null) {
+    // Get RCs (Regional Conferences) and admins based on target audience
+    const baseQuery = userModel.db('users')
+      .select('id', 'full_name', 'email', 'role', 'region_id')
+      .whereIn('role', ['rc', 'admin']);
+
+    switch (targetAudience) {
+      case 'rc_only':
+        return baseQuery.where('role', 'rc');
+      
+      case 'regional':
+        if (!regionId) {
+          throw new Error('Region ID is required for regional target audience');
+        }
+        return baseQuery.where('region_id', regionId);
+      
+      case 'all':
+      default:
+        return baseQuery;
+    }
   }
 };

@@ -18,4 +18,7 @@ router.delete('/:id', requireRole('admin'), eventController.deleteEvent);
 // Group events
 router.get('/group/:groupId', eventController.getEventsByGroup);
 
+// Leadership event participants
+router.get('/:id/participants', eventController.getLeadershipEventParticipants);
+
 module.exports = router;
