@@ -17,7 +17,15 @@ module.exports = {
       console.log('Group ID:', groupId);
 
       // Check if group exists and get group data
-      const group = await groupService.getGroupById(groupId);
+      let group;
+      // Try to get group by ID first (UUID), then by name if that fails
+      try {
+        group = await groupService.getGroupById(groupId);
+      } catch (error) {
+        // If ID lookup fails, try by name
+        group = await groupService.getGroupByName(groupId);
+      }
+      
       if (!group) {
         return res.status(404).json({ error: 'Group not found' });
       }
@@ -61,7 +69,7 @@ module.exports = {
         console.log('Formatted date:', eventData.date);
       }
 
-      eventData.group_id = groupId;
+      eventData.group_id = group.id;
       console.log('Final event data to save:', eventData);
 
       const result = await eventService.createEvent(eventData);
@@ -243,7 +251,15 @@ module.exports = {
       const requesterRegionId = req.fullUser?.region_id;
 
       // Check if group exists and get group data
-      const group = await groupService.getGroupById(groupId);
+      let group;
+      // Try to get group by ID first (UUID), then by name if that fails
+      try {
+        group = await groupService.getGroupById(groupId);
+      } catch (error) {
+        // If ID lookup fails, try by name
+        group = await groupService.getGroupByName(groupId);
+      }
+      
       if (!group) {
         return res.status(404).json({ error: 'Group not found' });
       }
@@ -257,7 +273,7 @@ module.exports = {
         return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
       }
 
-      const events = await eventService.getEventsByGroup(groupId);
+      const events = await eventService.getEventsByGroup(group.id);
       res.status(200).json(events);
     } catch (error) {
       console.error('Error fetching group events:', error);
