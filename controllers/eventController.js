@@ -3,6 +3,41 @@ const userService = require('../services/userService');
 const groupService = require('../services/groupService');
 
 module.exports = {
+  async createLeadershipEvent(req, res) {
+    try {
+      console.log('Creating leadership event...');
+      const eventData = req.body;
+      const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
+
+      console.log('Received leadership event data:', eventData);
+      console.log('User ID:', requesterId);
+
+      // Ensure this is a leadership event
+      if (eventData.tag !== 'leadership') {
+        return res.status(400).json({ error: 'This endpoint only accepts leadership events' });
+      }
+
+      // For leadership events, group_id must be null
+      eventData.group_id = null;
+      console.log('Leadership event - setting group_id to null');
+
+      // Leadership events can be created by super admin, root, and regional managers
+      if (!['super admin', 'root', 'regional manager'].includes(requesterRole)) {
+        return res.status(403).json({ error: 'Only super admin, root, and regional managers can create leadership events' });
+      }
+
+      console.log('Final leadership event data to save:', eventData);
+
+      const result = await eventService.createEvent(eventData);
+      console.log('Leadership event created successfully:', result[0]);
+      res.status(201).json(result[0]);
+    } catch (error) {
+      console.error('Error creating leadership event:', error);
+      res.status(500).json({ error: 'Failed to create leadership event' });
+    }
+  },
+
   async createEvent(req, res) {
     try {
       console.log('Creating event...');
@@ -16,7 +51,12 @@ module.exports = {
       console.log('User ID:', requesterId);
       console.log('Group ID:', groupId);
 
-      // Check if group exists and get group data
+      // Leadership events should use the /leadership endpoint, not the group endpoint
+      if (eventData.tag === 'leadership') {
+        return res.status(400).json({ error: 'Leadership events must be created using the /api/events/leadership endpoint' });
+      }
+
+      // For non-leadership events, validate group exists and check permissions
       let group;
       
       // Check if groupId looks like a UUID (basic validation)

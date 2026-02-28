@@ -8,6 +8,7 @@ const { requireRole, checkRegionAccess } = require('../middleware/rbacMiddleware
 router.use(authenticate);
 
 // Event CRUD operations with RBAC
+router.post('/leadership', requireRole('regional manager'), eventController.createLeadershipEvent); // Leadership events (no group required)
 router.post('/group/:groupId', requireRole('admin'), eventController.createEvent); // Group-specific create event
 router.get('/', checkRegionAccess, eventController.getAllEvents);
 router.get('/:id', eventController.getEventById);
