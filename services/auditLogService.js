@@ -160,5 +160,26 @@ module.exports = {
 
   async getRoleChangeLogs(limit = 100) {
     return await auditLogModel.getByAction('ROLE_CHANGE', limit);
+  },
+
+  async createAuditLog(auditData) {
+    try {
+      const logData = {
+        actor_id: auditData.actor_id,
+        user_id: auditData.user_id || null,
+        action: auditData.action,
+        old_value: auditData.old_value || null,
+        new_value: auditData.new_value || null,
+        target_id: auditData.target_id || null,
+        ip_address: auditData.ip_address || null,
+        user_agent: auditData.user_agent || null,
+        metadata: auditData.metadata ? JSON.stringify(auditData.metadata) : null
+      };
+
+      return await auditLogModel.create(logData);
+    } catch (error) {
+      console.error('Failed to create audit log:', error);
+      // Don't throw error to avoid breaking the main operation
+    }
   }
 };
