@@ -25,7 +25,12 @@ class RemovedMembersService {
       // Check if user is already removed from this group
       const existingRemoval = await RemovedMembersModel.findByGroupAndUser(groupId, userId);
       if (existingRemoval) {
-        throw new Error('User is already removed from this group');
+        // Return the existing removal record with a flag
+        return {
+          ...existingRemoval,
+          alreadyRemoved: true,
+          message: 'User was already removed from this group'
+        };
       }
 
       // Create the removed member record

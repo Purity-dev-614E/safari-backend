@@ -30,6 +30,16 @@ class RemovedMembersController {
         performer
       );
 
+      // Check if the user was already removed
+      if (removedMember.alreadyRemoved) {
+        return res.status(200).json({
+          success: true,
+          message: removedMember.message,
+          data: removedMember,
+          alreadyRemoved: true
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: 'Member removed successfully',
@@ -38,13 +48,6 @@ class RemovedMembersController {
     } catch (error) {
       console.error('Error removing member:', error);
       
-      if (error.message.includes('already removed')) {
-        return res.status(409).json({
-          error: 'Conflict',
-          message: error.message
-        });
-      }
-
       if (error.message.includes('not found') || error.message.includes('Missing required')) {
         return res.status(400).json({
           error: 'Bad Request',
