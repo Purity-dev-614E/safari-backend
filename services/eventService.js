@@ -2,6 +2,16 @@ const eventModel = require("../models/eventModel");
 
 module.exports = {
   async createEvent(eventData) {
+    // Set default tag to 'org' if not provided
+    if (!eventData.tag) {
+      eventData.tag = 'org';
+    }
+    
+    // Validate tag value
+    if (!['org', 'leadership'].includes(eventData.tag)) {
+      throw new Error("Invalid tag value. Must be 'org' or 'leadership'");
+    }
+
     if (eventData.date_time) {
       const date = new Date(eventData.date_time);
       if (isNaN(date.getTime())) throw new Error("Invalid date format");
@@ -52,5 +62,17 @@ module.exports = {
 
   async getEventsByGroup(groupId) {
     return eventModel.getByGroup(groupId);
+  },
+
+  async getEventsByGroupAndTag(groupId, tag) {
+    return eventModel.getByGroupAndTag(groupId, tag);
+  },
+
+  async getEventsByRegionAndTag(regionId, tag) {
+    return eventModel.getByRegionAndTag(regionId, tag);
+  },
+
+  async getEventsByTag(tag) {
+    return eventModel.getByTag(tag);
   },
 };

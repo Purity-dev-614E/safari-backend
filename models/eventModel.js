@@ -35,6 +35,22 @@ module.exports = {
       .select('events.*');
   },
   
+  async getByTag(tag) {
+    return db(table).where({ tag }).select('*');
+  },
+
+  async getByGroupAndTag(groupId, tag) {
+    return db(table).where({ group_id: groupId, tag }).select('*');
+  },
+
+  async getByRegionAndTag(regionId, tag) {
+    return db(table)
+      .join('groups', 'events.group_id', 'groups.id')
+      .where('groups.region_id', regionId)
+      .where('events.tag', tag)
+      .select('events.*');
+  },
+
   async getAllWithRegionInfo() {
     // Join with groups to include region information
     return db(table)

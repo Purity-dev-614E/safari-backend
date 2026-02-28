@@ -31,6 +31,25 @@ module.exports = {
         return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
       }
 
+      // Handle tag permissions
+      const tag = eventData.tag || 'org';
+      
+      // Admin can only create 'org' events
+      if (requesterRole === 'admin' && tag === 'leadership') {
+        return res.status(403).json({ error: 'Access denied: Admins cannot create leadership events' });
+      }
+      
+      // Regional managers can create leadership events only in their region
+      if (requesterRole === 'regional manager' && tag === 'leadership' && group.region_id !== requesterRegionId) {
+        return res.status(403).json({ error: 'Access denied: Cannot create leadership events outside your region' });
+      }
+      
+      // Root and super admin can create any type of event
+      // Users should not be creating events, but if they do, default to 'org'
+      if (requesterRole === 'user' && tag === 'leadership') {
+        return res.status(403).json({ error: 'Access denied: Users cannot create leadership events' });
+      }
+
       // Ensure date is correctly formatted
       if (eventData.date) {
         const date = new Date(eventData.date);
@@ -184,6 +203,7 @@ module.exports = {
   async getAllEvents(req, res) {
     try {
       const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
       const requesterRegionId = req.fullUser?.region_id;
       const regionId = req.query.region_id;
       
@@ -201,9 +221,11 @@ module.exports = {
       else if (requesterRole === 'admin') {
         events = await eventService.getEventsByAdminGroups(requesterId);
       }
-      // Users can only see events in their groups
+      // Users can only see org events in their groups
       else {
         events = await eventService.getEventsByUserGroups(requesterId);
+        // Filter to only show org events for users
+        events = events.filter(event => event.tag === 'org');
       }
       
       res.status(200).json(events);
