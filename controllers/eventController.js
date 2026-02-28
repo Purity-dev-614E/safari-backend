@@ -40,14 +40,16 @@ module.exports = {
       }
 
       // Check access permissions
+      console.log('Checking permissions - Role:', requesterRole, 'Group region:', group.region_id, 'User region:', requesterRegionId, 'Group admin:', group.group_admin_id, 'User ID:', requesterId);
+      
       if (requesterRole === 'regional manager' && group.region_id !== requesterRegionId) {
         return res.status(403).json({ error: 'Access denied: Group not in your region' });
       } else if (requesterRole === 'admin' && group.group_admin_id !== requesterId) {
         return res.status(403).json({ error: 'Access denied: You are not the admin of this group' });
-      } else {
-        // For all other cases, use the group's ID
-        eventData.group_id = group.id;
       }
+      
+      // For all other cases (super admin, root, or valid admin), use the group's ID
+      eventData.group_id = group.id;
       console.log('Final event data to save:', eventData);
 
       const result = await eventService.createEvent(eventData);
