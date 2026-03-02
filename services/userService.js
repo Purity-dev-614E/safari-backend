@@ -1,4 +1,5 @@
 const userModel = require('../models/userModel');
+const db = require('../db');
 
 module.exports = {
   
@@ -47,7 +48,7 @@ module.exports = {
 
   async getLeadershipEventParticipants(targetAudience = 'all', regionId = null) {
     // Get RCs (Regional Conferences) and admins based on target audience
-    const baseQuery = userModel.db('users')
+    const baseQuery = db('users')
       .select('id', 'full_name', 'email', 'role', 'region_id')
       .whereIn('role', ['rc', 'admin']);
 
