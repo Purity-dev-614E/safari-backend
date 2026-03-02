@@ -127,5 +127,54 @@ module.exports = {
     console.error('Error fetching attendance:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+},
+
+async createLeadershipAttendance(req, res) {
+  try {
+    const { eventId } = req.params;
+    const attendanceData = normalizeAttendancePayload(req.body);
+    validateAttendancePayload(attendanceData);
+    
+    // Verify this is a leadership event
+    const eventModel = require('../models/eventModel');
+    const event = await eventModel.getById(eventId);
+    
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    
+    if (event.tag !== 'leadership') {
+      return res.status(400).json({ error: 'This endpoint is only for leadership events' });
+    }
+    
+    // Verify user is RC or admin (eligible for leadership events)
+    const userModel = require('../models/userModel');
+    const user = await userModel.getById(attendanceData.user_id);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    if (!['rc', 'admin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only RCs and admins can attend leadership events' });
+    }
+    
+    // Check target audience restrictions
+    if (event.target_audience === 'rc_only' && user.role !== 'rc') {
+      return res.status(403).json({ error: 'This event is only for RCs' });
+    }
+    
+    if (event.target_audience === 'regional' && user.region_id !== event.region_id) {
+      return res.status(403).json({ error: 'User is not in the event\'s region' });
+    }
+    
+    // Create attendance record
+    const result = await attendanceService.createLeadershipAttendance(attendanceData);
+    res.status(201).json(result[0]);
+  } catch (error) {
+    console.error('Error creating leadership attendance:', error);
+    const status = error.statusCode || 500;
+    res.status(status).json({ error: error.message || 'Failed to create leadership attendance' });
   }
+}
 };

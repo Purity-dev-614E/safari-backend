@@ -11,6 +11,7 @@ router.use(authenticate);
 router.post('/leadership', requireRole('regional manager'), eventController.createLeadershipEvent); // Leadership events (no group required)
 router.post('/group/:groupId', requireRole('admin'), eventController.createEvent); // Group-specific create event
 router.get('/', checkRegionAccess, eventController.getAllEvents);
+router.get('/leadership', eventController.getLeadershipEvents); // Dedicated leadership events route
 router.get('/:id', eventController.getEventById);
 router.put('/:id', requireRole('admin'), eventController.updateEvent);
 router.delete('/:id', requireRole('admin'), eventController.deleteEvent);

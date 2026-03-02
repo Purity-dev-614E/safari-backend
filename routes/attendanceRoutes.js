@@ -9,6 +9,7 @@ const groupController = require('../controllers/groupController');
 router.use(authenticate); // Comment out this line
 
 router.post('/event/:eventId', attendanceController.createAttendance); // Event-specific create attendance
+router.post('/leadership/:eventId', attendanceController.createLeadershipAttendance); // Leadership event attendance
 
 router.get('/overview', analyticsController.getAttendanceOverview);
 

@@ -101,6 +101,17 @@ module.exports = {
   // Check and mark inactive members for a specific group
   async checkAndMarkInactiveMembers(groupId) {
     return memberActivityService.checkAndMarkInactiveAfterAttendance(groupId);
+  },
+
+  // Create attendance for leadership events (bypass group membership check)
+  async createLeadershipAttendance(attendanceData) {
+    await ensureValidLeadershipAttendanceReferences(attendanceData.event_id, attendanceData.user_id);
+    const result = await attendanceModel.create(attendanceData);
+    
+    // Leadership events don't have group-based member reactivation
+    // But we could add leadership-specific activity tracking here if needed
+    
+    return result;
   }
 };
 
@@ -158,4 +169,33 @@ function calculateStartDate(period) {
     }
 
     return startDate;
+}
+
+// Validation for leadership events (bypass group membership check)
+async function ensureValidLeadershipAttendanceReferences(eventId, userId) {
+  if (!uuidValidate(eventId) || !uuidValidate(userId)) {
+    const error = new Error('event_id and user_id must be valid UUIDs');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const [event, user] = await Promise.all([
+    eventModel.getById(eventId),
+    userModel.getById(userId)
+  ]);
+
+  if (!event) {
+    const error = new Error('Event not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Skip group membership validation for leadership events
+  // Leadership events have group_id = null and are open to RCs/admins based on target audience
 }

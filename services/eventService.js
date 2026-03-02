@@ -1,4 +1,5 @@
 const eventModel = require("../models/eventModel");
+const userCountService = require("./userCountService");
 
 module.exports = {
   async createEvent(eventData) {
@@ -87,4 +88,46 @@ module.exports = {
   async getEventsByTag(tag) {
     return eventModel.getByTag(tag);
   },
+
+  async getLeadershipEvents(regionId = null) {
+    // Get only leadership events, optionally filtered by region
+    return eventModel.getByTag('leadership');
+  },
+
+  async getLeadershipEventsWithParticipants(regionId = null) {
+    // Get leadership events with their participant counts
+    const events = await eventModel.getByTag('leadership');
+    
+    // For each event, get participant count based on target audience
+    const eventsWithCounts = await Promise.all(
+      events.map(async (event) => {
+        let participantCount = 0;
+        
+        switch (event.target_audience) {
+          case 'all':
+            // Count all RCs and admins
+            participantCount = await userCountService.countUsersByRole(['rc', 'admin']);
+            break;
+          case 'rc_only':
+            // Count only RCs
+            participantCount = await userCountService.countUsersByRole(['rc']);
+            break;
+          case 'regional':
+            // Count RCs and admins in specific region
+            if (event.region_id) {
+              participantCount = await userCountService.countUsersByRoleAndRegion(['rc', 'admin'], event.region_id);
+            }
+            break;
+        }
+        
+        return {
+          ...event,
+          participant_count: participantCount,
+          invited_count: participantCount // For frontend compatibility
+        };
+      })
+    );
+    
+    return eventsWithCounts;
+  }
 };

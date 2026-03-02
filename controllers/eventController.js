@@ -355,5 +355,37 @@ module.exports = {
       console.error('Error fetching leadership event participants:', error);
       res.status(500).json({ error: 'Failed to fetch participants' });
     }
+  },
+
+  async getLeadershipEvents(req, res) {
+    try {
+      const requesterRole = req.fullUser?.role;
+      const requesterRegionId = req.fullUser?.region_id;
+      
+      // Only leadership roles can access leadership events
+      if (!['super admin', 'root', 'regional manager', 'rc', 'admin'].includes(requesterRole)) {
+        return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+      }
+
+      let events;
+      
+      // Super admin and root can see all leadership events
+      if (['super admin', 'root'].includes(requesterRole)) {
+        events = await eventService.getLeadershipEventsWithParticipants();
+      }
+      // Regional managers can only see leadership events in their region
+      else if (requesterRole === 'regional manager') {
+        events = await eventService.getLeadershipEventsWithParticipants(requesterRegionId);
+      }
+      // RCs and admins can see all leadership events (they are potential participants)
+      else {
+        events = await eventService.getLeadershipEventsWithParticipants();
+      }
+      
+      res.status(200).json(events);
+    } catch (error) {
+      console.error('Error fetching leadership events:', error);
+      res.status(500).json({ error: 'Failed to fetch leadership events' });
+    }
   }
 };
