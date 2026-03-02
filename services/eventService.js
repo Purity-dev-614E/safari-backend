@@ -62,15 +62,38 @@ module.exports = {
   },
 
   async getEventsByAdminGroups(adminId) {
-    // This would need to be implemented based on your group structure
-    // For now, return all events (this should be restricted in production)
-    return eventModel.getAll();
+    // Get groups where user is admin
+    const groupModel = require('../models/groupModel');
+    const adminGroups = await groupModel.getAdminGroups(adminId);
+    
+    if (adminGroups.length === 0) {
+      return []; // Admin is not admin of any groups
+    }
+    
+    // Get events for all admin's groups
+    const groupIds = adminGroups.map(group => group.id);
+    const events = await eventModel.getAll()
+      .whereIn('group_id', groupIds);
+    
+    return events;
   },
 
   async getEventsByUserGroups(userId) {
-    // This would need to be implemented based on your group structure
-    // For now, return all events (this should be restricted in production)
-    return eventModel.getAll();
+    // Get user's groups first
+    const groupModel = require('../models/groupModel');
+    const userGroups = await groupModel.getGroupsByUserId(userId);
+    
+    if (userGroups.length === 0) {
+      return []; // User is not in any groups
+    }
+    
+    // Get events for all user's groups
+    const groupIds = userGroups.map(group => group.id);
+    const events = await eventModel.getAll()
+      .whereIn('group_id', groupIds)
+      .where('tag', 'org'); // Only org events for regular users
+    
+    return events;
   },
 
   async getEventsByGroup(groupId) {
