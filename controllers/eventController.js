@@ -125,7 +125,18 @@ module.exports = {
         return res.status(404).json({ error: 'Event not found' });
       }
 
-      // Get group data to check permissions
+      // For leadership events, skip group validation
+      if (event.tag === 'leadership') {
+        // Leadership events don't require group validation
+        // Check basic permissions - leadership roles can view leadership events
+        const requesterRole = req.fullUser?.role;
+        if (!['super admin', 'root', 'regional manager', 'rc', 'admin'].includes(requesterRole)) {
+          return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+        }
+        return res.status(200).json(event);
+      }
+
+      // For regular events, get group data to check permissions
       const group = await groupService.getGroupById(event.group_id);
       if (!group) {
         return res.status(404).json({ error: 'Associated group not found' });
