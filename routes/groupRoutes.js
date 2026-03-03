@@ -8,7 +8,7 @@ const { requireRole, checkRegionAccess } = require('../middleware/rbacMiddleware
 router.use(authenticate);
 
 // Group CRUD operations with RBAC
-router.post('/', requireRole('admin', 'regional manager', 'super admin', 'root'), checkRegionAccess, groupController.createGroup);
+router.post('/', requireRole('admin', 'regional manager', 'super admin', 'root'), groupController.createGroup);
 router.get('/', checkRegionAccess, groupController.getAllGroups);
 
 // Get all groups for profile selection (bypasses RBAC restrictions)
