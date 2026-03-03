@@ -15,7 +15,14 @@ module.exports = {
         groupData.region_id = requesterRegionId;
       }
       
-      // Admins can only create groups (no region restrictions needed as they're assigned to existing groups)
+      // Super admin and root must specify region_id
+      if (['super admin', 'root'].includes(requesterRole)) {
+        if (!groupData.region_id) {
+          return res.status(400).json({ error: 'region_id is required for super admin and root users' });
+        }
+      }
+      
+      // Admins can create groups (no region restrictions as they're assigned to existing groups)
       
       const result = await groupService.createGroup(groupData);
       console.log('Group created successfully:', result[0]);

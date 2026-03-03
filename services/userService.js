@@ -22,6 +22,39 @@ module.exports = {
   async deleteUser(id) {
     return userModel.delete(id);
   },
+
+  async deleteUserCompletely(id) {
+    const { supabase } = require('../auth');
+    
+    try {
+      // First, get the user from backend to get auth info
+      const user = await userModel.getById(id);
+      if (!user) {
+        throw new Error('User not found in backend database');
+      }
+
+      // Delete from Supabase auth first
+      if (user.auth_id) {
+        const { error: authError } = await supabase.auth.admin.deleteUser(user.auth_id);
+        if (authError) {
+          console.error('Failed to delete user from Supabase auth:', authError);
+          throw new Error(`Failed to delete from Supabase auth: ${authError.message}`);
+        }
+      }
+
+      // Delete from backend database (cascade will handle related records)
+      const result = await userModel.delete(id);
+      
+      return {
+        backendDeleted: result,
+        authDeleted: true,
+        message: 'User completely deleted from both backend and auth'
+      };
+    } catch (error) {
+      console.error('Complete user deletion failed:', error);
+      throw error;
+    }
+  },
   
   async getAllUsers(regionId = null) {
     if (regionId) {

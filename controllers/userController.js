@@ -235,6 +235,49 @@ module.exports = {
       res.status(500).json({ error: 'Failed to delete user' });
     }
   },
+
+  async deleteUserCompletely(req, res) {
+    try {
+      const { id } = req.params;
+      const requesterRole = req.fullUser?.role;
+      const requesterId = req.fullUser?.id;
+      
+      // Only root and super admin can completely delete users
+      if (!['root', 'super admin'].includes(requesterRole)) {
+        return res.status(403).json({ error: 'Only root and super admin can completely delete users' });
+      }
+      
+      // Check if user exists
+      const existingUser = await userService.getUserById(id);
+      if (!existingUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Only root can delete root users
+      if (existingUser.role === 'root' && requesterRole !== 'root') {
+        return res.status(403).json({ error: 'Only root can delete root users' });
+      }
+      
+      // Log user deletion
+      await auditLogService.logUserDeletion(
+        requesterId,
+        id,
+        existingUser.role,
+        req.ip,
+        req.get('User-Agent')
+      );
+      
+      const result = await userService.deleteUserCompletely(id);
+      
+      res.status(200).json({
+        message: 'User completely deleted from both backend and Supabase auth',
+        details: result
+      });
+    } catch (error) {
+      console.error('Error completely deleting user:', error);
+      res.status(500).json({ error: 'Failed to completely delete user' });
+    }
+  },
   
   async getAllUsers(req, res) {
     try {

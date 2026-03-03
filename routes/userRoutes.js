@@ -13,6 +13,7 @@ router.get('/:id', userController.getUserById);
 router.get('/:email', userController.getUserByEmail);
 router.put('/:id', validateRoleChange, userController.updateUser);
 router.delete('/:id', requireRole('super admin', 'root'), userController.deleteUser);
+router.delete('/:id/complete', requireRole('super admin', 'root'), userController.deleteUserCompletely);
 router.put('/:id/uploadimage', userController.updateProfilePicture);
 
 module.exports = router;
