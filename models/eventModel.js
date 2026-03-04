@@ -20,7 +20,7 @@ module.exports = {
   },
   
   async getAll() {
-    return db(table).select('*');
+    return db(table);
   },
   
   async getByGroup(groupId) {

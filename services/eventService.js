@@ -73,6 +73,7 @@ module.exports = {
     // Get events for all admin's groups
     const groupIds = adminGroups.map(group => group.id);
     const events = await eventModel.getAll()
+      .select('*')
       .whereIn('group_id', groupIds);
     
     return events;
@@ -90,6 +91,7 @@ module.exports = {
     // Get events for all user's groups
     const groupIds = userGroups.map(group => group.id);
     const events = await eventModel.getAll()
+      .select('*')
       .whereIn('group_id', groupIds)
       .where('tag', 'org'); // Only org events for regular users
     
