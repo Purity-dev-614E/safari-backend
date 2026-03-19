@@ -13,9 +13,16 @@ module.exports = {
       throw new Error("Invalid tag value. Must be 'org' or 'leadership'");
     }
 
-    // Set default target_audience for leadership events
-    if (eventData.tag === 'leadership' && !eventData.target_audience) {
-      eventData.target_audience = 'all';
+    // For leadership events, validate regional_id is provided
+    if (eventData.tag === 'leadership') {
+      if (!eventData.regional_id) {
+        throw new Error("regional_id is required for leadership events");
+      }
+      
+      // Set default target_audience for leadership events
+      if (!eventData.target_audience) {
+        eventData.target_audience = 'all';
+      }
     }
 
     // Validate target_audience for leadership events
@@ -116,12 +123,17 @@ module.exports = {
 
   async getLeadershipEvents(regionId = null) {
     // Get only leadership events, optionally filtered by region
+    if (regionId) {
+      return eventModel.getLeadershipEventsByRegion(regionId);
+    }
     return eventModel.getByTag('leadership');
   },
 
   async getLeadershipEventsWithParticipants(regionId = null) {
     // Get leadership events with their participant counts
-    const events = await eventModel.getByTag('leadership');
+    const events = regionId 
+      ? await eventModel.getLeadershipEventsByRegion(regionId)
+      : await eventModel.getByTag('leadership');
     
     // For each event, get participant count based on target audience
     const eventsWithCounts = await Promise.all(
@@ -139,8 +151,8 @@ module.exports = {
             break;
           case 'regional':
             // Count RCs and admins in specific region
-            if (event.region_id) {
-              participantCount = await userCountService.countUsersByRoleAndRegion(['rc', 'admin'], event.region_id);
+            if (event.regional_id) {
+              participantCount = await userCountService.countUsersByRoleAndRegion(['rc', 'admin'], event.regional_id);
             }
             break;
         }

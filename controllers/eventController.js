@@ -9,9 +9,11 @@ module.exports = {
       const eventData = req.body;
       const requesterRole = req.fullUser?.role;
       const requesterId = req.fullUser?.id;
+      const requesterRegionId = req.fullUser?.region_id;
 
       console.log('Received leadership event data:', eventData);
       console.log('User ID:', requesterId);
+      console.log('User Region ID:', requesterRegionId);
 
       // Ensure this is a leadership event
       if (eventData.tag !== 'leadership') {
@@ -27,6 +29,18 @@ module.exports = {
         return res.status(403).json({ error: 'Only super admin, root, and regional managers can create leadership events' });
       }
 
+      // Set regional_id based on user role
+      if (requesterRole === 'regional manager') {
+        // Regional managers can only create events for their own region
+        eventData.regional_id = requesterRegionId;
+      } else if (['super admin', 'root'].includes(requesterRole)) {
+        // Super admin and root can specify region_id, default to first available if not provided
+        if (!eventData.regional_id) {
+          // You might want to get the first available region or require it to be specified
+          return res.status(400).json({ error: 'regional_id is required for leadership events' });
+        }
+      }
+
       // Set default target_audience if not provided
       if (!eventData.target_audience) {
         eventData.target_audience = 'all';
@@ -35,11 +49,6 @@ module.exports = {
       // Validate target_audience
       if (!['all', 'rc_only', 'regional'].includes(eventData.target_audience)) {
         return res.status(400).json({ error: 'Invalid target_audience. Must be all, rc_only, or regional' });
-      }
-
-      // If regional target audience, ensure region_id is provided
-      if (eventData.target_audience === 'regional' && !eventData.region_id) {
-        return res.status(400).json({ error: 'Region ID is required for regional target audience' });
       }
 
       console.log('Final leadership event data to save:', eventData);

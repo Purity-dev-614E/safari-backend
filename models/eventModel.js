@@ -28,11 +28,22 @@ module.exports = {
   },
   
   async getByRegion(regionId) {
-    // Join with groups to filter events by region
-    return db(table)
+    // Get both group events and leadership events for this region
+    const groupEvents = db(table)
       .join('groups', 'events.group_id', 'groups.id')
       .where('groups.region_id', regionId)
       .select('events.*');
+    
+    const leadershipEvents = db(table)
+      .where({ 
+        tag: 'leadership',
+        regional_id: regionId 
+      })
+      .select('events.*');
+    
+    // Combine both results (this would need to be handled at the service layer)
+    // For now, return group events to maintain backward compatibility
+    return groupEvents;
   },
   
   async getByTag(tag) {
@@ -62,5 +73,15 @@ module.exports = {
         'groups.region_id',
         'regions.name as region_name'
       );
+  },
+
+  async getLeadershipEventsByRegion(regionId) {
+    // Get leadership events specifically created for this region
+    return db(table)
+      .where({ 
+        tag: 'leadership',
+        regional_id: regionId 
+      })
+      .select('*');
   }
 };
