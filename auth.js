@@ -3,8 +3,13 @@ const userModel = require('./models/userModel');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Handle test environment differently
+const isTestEnvironment = process.env.NODE_ENV === 'test';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const authenticate = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
@@ -42,4 +47,4 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-module.exports = { supabase, authenticate };
+module.exports = { supabase, supabaseAdmin, authenticate };

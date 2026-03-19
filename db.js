@@ -1,6 +1,7 @@
 require('dotenv').config(); // Load environment variables
 
-const knexConfig = require('./knexfile.js')['development']; // Get development config
+const environment = process.env.NODE_ENV || 'development';
+const knexConfig = require('./knexfile.js')[environment]; // Get environment-specific config
 const knex = require('knex')(knexConfig); // Initialize knex instance
 
 // Test database connection

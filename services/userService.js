@@ -24,7 +24,7 @@ module.exports = {
   },
 
   async deleteUserCompletely(id) {
-    const { supabase } = require('../auth');
+    const { supabaseAdmin } = require('../auth');
     
     try {
       // First, get the user from backend to get auth info
@@ -35,7 +35,7 @@ module.exports = {
 
       // Delete from Supabase auth first
       if (user.auth_id) {
-        const { error: authError } = await supabase.auth.admin.deleteUser(user.auth_id);
+        const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(user.auth_id);
         if (authError) {
           console.error('Failed to delete user from Supabase auth:', authError);
           throw new Error(`Failed to delete from Supabase auth: ${authError.message}`);
