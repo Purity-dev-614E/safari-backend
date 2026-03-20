@@ -11,6 +11,8 @@ router.use(authenticate); // Comment out this line
 router.post('/event/:eventId', attendanceController.createAttendance); // Event-specific create attendance
 router.post('/leadership/:eventId', attendanceController.createLeadershipAttendance); // Leadership event attendance
 
+router.get('/leadership-attendees', attendanceController.getLeadershipAttendees); // Get leadership attendees
+
 router.get('/overview', analyticsController.getAttendanceOverview);
 
 router.get('/week', attendanceController.getAttendanceByTimePeriod);

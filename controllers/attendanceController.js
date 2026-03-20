@@ -176,5 +176,37 @@ async createLeadershipAttendance(req, res) {
     const status = error.statusCode || 500;
     res.status(status).json({ error: error.message || 'Failed to create leadership attendance' });
   }
+},
+
+async getLeadershipAttendees(req, res) {
+  try {
+    const requesterRole = req.fullUser?.role;
+    const requesterRegionId = req.fullUser?.region_id;
+    const { user_tle } = req.query; // Get user_tle from query params
+
+    // Validate that the user has leadership role
+    if (!['regional manager', 'admin', 'super admin', 'root'].includes(requesterRole)) {
+      return res.status(403).json({ error: 'Access denied: insufficient permissions' });
+    }
+
+    // Validate user_tle parameter
+    if (!user_tle) {
+      return res.status(400).json({ error: 'user_tle parameter is required' });
+    }
+
+    // Convert user_tle to array if it's a string
+    const userTleArray = Array.isArray(user_tle) ? user_tle : [user_tle];
+
+    const attendees = await attendanceService.getLeadershipAttendees(
+      requesterRole,
+      requesterRegionId,
+      userTleArray
+    );
+
+    res.status(200).json(attendees);
+  } catch (error) {
+    console.error('Error fetching leadership attendees:', error);
+    res.status(500).json({ error: 'Failed to fetch leadership attendees' });
+  }
 }
 };

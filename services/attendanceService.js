@@ -112,6 +112,11 @@ module.exports = {
     // But we could add leadership-specific activity tracking here if needed
     
     return result;
+  },
+
+  // Get leadership attendees based on user role and permissions
+  async getLeadershipAttendees(userRole, userRegionId, userTle) {
+    return attendanceModel.getLeadershipAttendees(userRole, userRegionId, userTle);
   }
 };
 

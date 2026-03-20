@@ -124,6 +124,87 @@ module.exports = {
     memberCount,
     percentage: percentage.toFixed(2),
     };
+  },
+
+  async getLeadershipAttendees(userRole, userRegionId, userTle) {
+    // Build the base query for leadership events
+    let query = db('events')
+      .where('events.tag', 'leadership')
+      .andWhere(function() {
+        // Type 1: user is RM or group admin
+        this.where('events.target_audience', 'all')
+          .andWhere('events.regional_id', userRegionId)
+          .andWhere(function() {
+            this.where('users.role', 'regional manager')
+              .orWhere('users.role', 'admin');
+          });
+      })
+      .orWhere(function() {
+        // Type 2: user is RM only
+        this.where('events.target_audience', 'rc_only')
+          .andWhere('users.role', 'regional manager');
+      })
+      .orWhere(function() {
+        // Type 3: user is group admin in the matching region
+        this.where('events.target_audience', 'regional')
+          .andWhere('users.role', 'admin')
+          .andWhere('events.regional_id', userRegionId);
+      })
+      .orWhere(function() {
+        // Type 3 also visible to the RM of that region
+        this.where('events.target_audience', 'regional')
+          .andWhere('users.role', 'regional manager')
+          .andWhere('events.regional_id', userRegionId);
+      });
+
+    // Join with attendance to get attendees
+    const attendees = await db('attendance')
+      .join('events', 'attendance.event_id', 'events.id')
+      .join('users', 'attendance.user_id', 'users.id')
+      .where('events.tag', 'leadership')
+      .andWhere(function() {
+        // Type 1: user is RM or group admin
+        this.where('events.target_audience', 'all')
+          .andWhere(function() {
+            this.where('users.role', 'regional manager')
+              .orWhere('users.role', 'admin');
+          });
+      })
+      .orWhere(function() {
+        // Type 2: user is RM only
+        this.where('events.target_audience', 'rc_only')
+          .andWhere('users.role', 'regional manager');
+      })
+      .orWhere(function() {
+        // Type 3: user is group admin in the matching region
+        this.where('events.target_audience', 'regional')
+          .andWhere('users.role', 'admin')
+          .andWhere('events.regional_id', userRegionId);
+      })
+      .orWhere(function() {
+        // Type 3 also visible to the RM of that region
+        this.where('events.target_audience', 'regional')
+          .andWhere('users.role', 'regional manager')
+          .andWhere('events.regional_id', userRegionId);
+      })
+      .andWhere('users.user_tle', 'in', userTle)
+      .select(
+        'attendance.id as attendance_id',
+        'attendance.present',
+        'attendance.created_at as attendance_created_at',
+        'events.id as event_id',
+        'events.title as event_title',
+        'events.date as event_date',
+        'events.target_audience',
+        'events.regional_id',
+        'users.id as user_id',
+        'users.full_name',
+        'users.email',
+        'users.role',
+        'users.user_tle'
+      );
+
+    return attendees;
   }
 
 };
