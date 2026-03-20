@@ -34,11 +34,10 @@ module.exports = {
         // Regional managers can only create events for their own region
         eventData.regional_id = requesterRegionId;
       } else if (['super admin', 'root'].includes(requesterRole)) {
-        // Super admin and root can specify region_id, default to first available if not provided
-        if (!eventData.regional_id) {
-          // You might want to get the first available region or require it to be specified
-          return res.status(400).json({ error: 'regional_id is required for leadership events' });
-        }
+        // Super admin and root can specify region_id, but it can be null for global events
+        // If regional_id is not provided, it will be null (global leadership event)
+        // If provided, it will be for that specific region
+        console.log('Super admin/root creating leadership event - regional_id:', eventData.regional_id || 'null (global)');
       }
 
       // Set default target_audience if not provided
