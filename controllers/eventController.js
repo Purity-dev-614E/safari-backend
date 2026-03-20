@@ -35,8 +35,10 @@ module.exports = {
         eventData.regional_id = requesterRegionId;
       } else if (['super admin', 'root'].includes(requesterRole)) {
         // Super admin and root can specify region_id, but it can be null for global events
-        // If regional_id is not provided, it will be null (global leadership event)
-        // If provided, it will be for that specific region
+        // Convert empty string to null for global leadership events
+        if (eventData.regional_id === '' || eventData.regional_id === undefined) {
+          eventData.regional_id = null;
+        }
         console.log('Super admin/root creating leadership event - regional_id:', eventData.regional_id || 'null (global)');
       }
 

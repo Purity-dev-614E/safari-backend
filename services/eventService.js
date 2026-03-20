@@ -13,10 +13,12 @@ module.exports = {
       throw new Error("Invalid tag value. Must be 'org' or 'leadership'");
     }
 
-    // For leadership events, validate regional_id is provided
+    // For leadership events, validate regional_id is provided unless it's explicitly null for global events
     if (eventData.tag === 'leadership') {
-      if (!eventData.regional_id) {
-        throw new Error("regional_id is required for leadership events");
+      // Allow regional_id to be null (for global leadership events) or a valid string
+      // Only throw error if regional_id is undefined or empty string (not explicitly null)
+      if (eventData.regional_id === undefined || eventData.regional_id === '') {
+        throw new Error("regional_id must be provided or explicitly null for leadership events");
       }
       
       // Set default target_audience for leadership events
