@@ -1,4 +1,4 @@
-const analyticsService = require('../services/analyticsService');
+﻿const analyticsService = require('../services/analyticsService');
 
 module.exports = {
   // Group Analytics
@@ -456,20 +456,3 @@ module.exports = {
     }
   }
 }; 
- 
-     a s y n c   g e t D a t a b a s e S t a t s ( r e q ,   r e s )   { 
-         t r y   { 
-             c o n s t   {   r e g i o n _ i d   }   =   r e q . q u e r y ; 
-             
-             c o n s t   s t a t s   =   a w a i t   a n a l y t i c s S e r v i c e . g e t D a t a b a s e S t a t s ( 
-                 r e q . u s e r R e g i o n I d , 
-                 r e q . b y p a s s R e g i o n C h e c k 
-             ) ; 
-             
-             r e s . s t a t u s ( 2 0 0 ) . j s o n ( s t a t s ) ; 
-         }   c a t c h   ( e r r o r )   { 
-             c o n s o l e . e r r o r ( ' E r r o r   i n   g e t D a t a b a s e S t a t s   c o n t r o l l e r : ' ,   e r r o r ) ; 
-             r e s . s t a t u s ( 5 0 0 ) . j s o n ( {   e r r o r :   e r r o r . m e s s a g e   | |   ' F a i l e d   t o   f e t c h   d a t a b a s e   s t a t i s t i c s '   } ) ; 
-         } 
-     }  
- 

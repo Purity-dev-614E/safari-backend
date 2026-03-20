@@ -1,4 +1,4 @@
-const analyticsModel = require('../models/analyticsModel');
+﻿const analyticsModel = require('../models/analyticsModel');
 const regionAnalyticsModel = require('../models/regionAnalyticsModel');
 const groupModel = require('../models/groupModel');
 const regionModel = require('../models/regionModel');
@@ -394,15 +394,3 @@ module.exports = {
     return analyticsModel.exportGroupReport(groupId);
   }
 }; 
- 
-     / /   D a t a b a s e   S t a t i s t i c s 
-     a s y n c   g e t D a t a b a s e S t a t s ( u s e r R e g i o n I d ,   b y p a s s R e g i o n C h e c k )   { 
-         i f   ( b y p a s s R e g i o n C h e c k )   { 
-             / /   S u p e r   a d m i n   c a n   g e t   a l l   d a t a 
-             r e t u r n   a n a l y t i c s M o d e l . g e t D a t a b a s e S t a t s ( ) ; 
-         }   e l s e   { 
-             / /   R e g i o n a l   m a n a g e r s   g e t   d a t a   f o r   t h e i r   r e g i o n   o n l y 
-             r e t u r n   a n a l y t i c s M o d e l . g e t D a t a b a s e S t a t s ( u s e r R e g i o n I d ) ; 
-         } 
-     }  
- 
